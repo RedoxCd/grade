@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Notes Scolaires</title>
+    <style>
+        :root {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d2e;
+            --bg-card: #1e2235;
+            --bg-input: #252840;
+            --border: #2e3250;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --green: #22c55e;
+            --green-bg: #052e16;
+            --red: #ef4444;
+            --red-bg: #2d0a0a;
+            --orange: #f97316;
+            --orange-bg: #2d1a0a;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .icon-1 { background: rgba(99, 102, 241, 0.2); }
+        .icon-2 { background: rgba(249, 115, 22, 0.2); }
+        .icon-3 { background: rgba(34, 197, 94, 0.2); }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 110px;
+        }
+
+        label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        input::placeholder { color: var(--text-muted); }
+
+        .btn-add {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover { background: var(--accent-hover); }
+
+        /* Result cards */
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+
+        .result-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .result-label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .result-badge {
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .green  { color: var(--green); }
+        .red    { color: var(--red); }
+        .orange { color: var(--orange); }
+
+        .badge-green  { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+        .badge-red    { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+        .badge-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+
+        .result-message {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 13px 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .message-green  { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(34,197,94,.3); }
+        .message-red    { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(239,68,68,.3); }
+        .message-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid rgba(249,115,22,.3); }
+
+        /* Item lists */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+        }
+
+        .item-name {
+            flex: 1;
+            font-weight: 500;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-coeff {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .item-grade {
+            font-weight: 700;
+            font-size: 1.05rem;
+            min-width: 38px;
+            text-align: right;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 3px 7px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-delete:hover {
+            color: var(--red);
+            background: rgba(239,68,68,.12);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 18px;
+            font-size: 0.88rem;
+        }
+
+        /* Section 2 min grade */
+        .min-grade-display {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        /* Section 3 projects */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .progress-track {
+            background: var(--bg-input);
+            border-radius: 8px;
+            height: 11px;
+            overflow: hidden;
+            margin-bottom: 7px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.4s ease, background 0.3s;
+        }
+
+        .fill-green  { background: linear-gradient(90deg, #16a34a, #22c55e); }
+        .fill-orange { background: linear-gradient(90deg, #c2410c, #f97316); }
+        .fill-red    { background: linear-gradient(90deg, #7f1d1d, #ef4444); }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
+        }
+
+        /* Toggle switch */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-label {
+            font-size: 0.78rem;
+            min-width: 44px;
+            font-weight: 500;
+        }
+
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--red-bg);
+            border: 1px solid rgba(239,68,68,.4);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            top: 3px;
+            background: var(--red);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: var(--green-bg);
+            border-color: rgba(34,197,94,.4);
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: var(--green);
+        }
+
+        .item-periods {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        @media (max-width: 600px) {
+            body { padding: 12px 10px; }
+            h1 { font-size: 1.4rem; margin-bottom: 20px; }
+            .section { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .form-row { flex-direction: column; }
+            .result-value { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gestion des Notes Scolaires</h1>
+
+    <!-- ====== SECTION 1 : Calcul de moyenne ====== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-icon icon-1">📊</div>
+                Calcul de Moyenne
+            </div>
+            <button class="btn-reset" onclick="resetSection1()">Réinitialiser</button>
+        </div>
+
+        <div class="result-card">
+            <div class="result-main">
+                <div>
+                    <div class="result-label">Moyenne pondérée</div>
+                    <div class="result-value" id="avg-value">—</div>
+                </div>
+                <div id="avg-badge"></div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nom du test</label>
+                <input type="text" id="grade-name" placeholder="ex: Test SQL" />
+            </div>
+            <div class="form-group" style="max-width:110px">
+                <label>Note (1 – 6)</label>
+                <input type="number" id="grade-value" placeholder="5.5" min="1" max="6" step="0.5" />
+            </div>
+            <div class="form-group" style="max-width:110px">
+                <label>Coefficient</label>
+                <input type="number" id="grade-coeff" placeholder="1" min="0.1" step="0.1" />
+            </div>
+            <button class="btn-add" onclick="addGrade()">+ Ajouter</button>
+        </div>
+
+        <div class="item-list" id="grades-list">
+            <div class="empty-state">Aucune note ajoutée</div>
+        </div>
+    </div>
+
+    <!-- ====== SECTION 2 : Note minimale ====== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-icon icon-2">🎯</div>
+                Note Minimale pour Passer
+            </div>
+            <button class="btn-reset" onclick="resetSection2()">Réinitialiser</button>
+        </div>
+
+        <div id="min-result"></div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nom du test restant</label>
+                <input type="text" id="rem-name" placeholder="ex: Examen final" />
+            </div>
+            <div class="form-group" style="max-width:110px">
+                <label>Coefficient</label>
+                <input type="number" id="rem-coeff" placeholder="2" min="0.1" step="0.1" />
+            </div>
+            <button class="btn-add" onclick="addRemaining()">+ Ajouter</button>
+        </div>
+
+        <div class="item-list" id="remaining-list">
+            <div class="empty-state">Aucun test restant ajouté</div>
+        </div>
+    </div>
+
+    <!-- ====== SECTION 3 : Projets par périodes ====== -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">
+                <div class="section-icon icon-3">🏗️</div>
+                Projets par Périodes
+            </div>
+            <button class="btn-reset" onclick="resetSection3()">Réinitialiser</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="s3-total">0</div>
+                <div class="stat-label">Périodes totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="s3-validated">0</div>
+                <div class="stat-label">Périodes validées</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="s3-pct">0%</div>
+                <div class="stat-label">Taux de réussite</div>
+            </div>
+        </div>
+
+        <div class="progress-track">
+            <div class="progress-fill fill-red" id="s3-bar" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+            <span id="s3-status">—</span>
+            <span>Seuil : 80%</span>
+        </div>
+
+        <div id="s3-message"></div>
+
+        <hr class="divider">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nom du projet</label>
+                <input type="text" id="proj-name" placeholder="ex: Projet Web" />
+            </div>
+            <div class="form-group" style="max-width:130px">
+                <label>Nombre de périodes</label>
+                <input type="number" id="proj-periods" placeholder="4" min="1" step="1" />
+            </div>
+            <button class="btn-add" onclick="addProject()">+ Ajouter</button>
+        </div>
+
+        <div class="item-list" id="projects-list">
+            <div class="empty-state">Aucun projet ajouté</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Storage helpers
+// ─────────────────────────────────────────────
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const load = (k, d = []) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const esc  = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const uid  = () => Date.now() + Math.random();
+
+// ─────────────────────────────────────────────
+// SECTION 1 — Calcul de moyenne
+// ─────────────────────────────────────────────
+let grades = load('s1_grades');
+
+function addGrade() {
+    const name  = document.getElementById('grade-name').value.trim();
+    const value = parseFloat(document.getElementById('grade-value').value);
+    const coeff = parseFloat(document.getElementById('grade-coeff').value);
+
+    if (!name)                         return alert('Entrez un nom pour le test.');
+    if (isNaN(value) || value < 1 || value > 6) return alert('Note invalide (entre 1 et 6).');
+    if (isNaN(coeff) || coeff <= 0)    return alert('Coefficient invalide.');
+
+    grades.push({ id: uid(), name, value, coeff });
+    save('s1_grades', grades);
+    document.getElementById('grade-name').value  = '';
+    document.getElementById('grade-value').value = '';
+    document.getElementById('grade-coeff').value = '';
+    renderGrades();
+    renderMinGrade();
+}
+
+function deleteGrade(id) {
+    grades = grades.filter(g => g.id !== id);
+    save('s1_grades', grades);
+    renderGrades();
+    renderMinGrade();
+}
+
+function renderGrades() {
+    const list   = document.getElementById('grades-list');
+    const avgEl  = document.getElementById('avg-value');
+    const badgeEl= document.getElementById('avg-badge');
+
+    if (!grades.length) {
+        list.innerHTML  = '<div class="empty-state">Aucune note ajoutée</div>';
+        avgEl.textContent = '—';
+        avgEl.className = 'result-value';
+        badgeEl.innerHTML = '';
+        return;
+    }
+
+    let pts = 0, w = 0;
+    grades.forEach(g => { pts += g.value * g.coeff; w += g.coeff; });
+    const avg = pts / w;
+    const ok  = avg >= 4;
+
+    avgEl.textContent = avg.toFixed(2);
+    avgEl.className   = `result-value ${ok ? 'green' : 'red'}`;
+    badgeEl.innerHTML = ok
+        ? '<span class="result-badge badge-green">✓ Réussi</span>'
+        : '<span class="result-badge badge-red">✗ Insuffisant</span>';
+
+    list.innerHTML = grades.map(g => {
+        const c = g.value >= 4 ? 'green' : 'red';
+        return `<div class="list-item">
+            <span class="item-name">${esc(g.name)}</span>
+            <span class="item-coeff">×${g.coeff}</span>
+            <span class="item-grade ${c}">${g.value.toFixed(1)}</span>
+            <button class="btn-delete" onclick="deleteGrade(${g.id})">✕</button>
+        </div>`;
+    }).join('');
+}
+
+function resetSection1() {
+    if (!confirm('Réinitialiser toutes les notes ?')) return;
+    grades = []; save('s1_grades', grades);
+    renderGrades(); renderMinGrade();
+}
+
+// ─────────────────────────────────────────────
+// SECTION 2 — Note minimale pour passer
+// ─────────────────────────────────────────────
+let remaining = load('s2_remaining');
+
+function addRemaining() {
+    const name  = document.getElementById('rem-name').value.trim();
+    const coeff = parseFloat(document.getElementById('rem-coeff').value);
+
+    if (!name)                      return alert('Entrez un nom pour le test restant.');
+    if (isNaN(coeff) || coeff <= 0) return alert('Coefficient invalide.');
+
+    remaining.push({ id: uid(), name, coeff });
+    save('s2_remaining', remaining);
+    document.getElementById('rem-name').value  = '';
+    document.getElementById('rem-coeff').value = '';
+    renderMinGrade();
+}
+
+function deleteRemaining(id) {
+    remaining = remaining.filter(r => r.id !== id);
+    save('s2_remaining', remaining);
+    renderMinGrade();
+}
+
+function renderMinGrade() {
+    const list   = document.getElementById('remaining-list');
+    const result = document.getElementById('min-result');
+
+    // Render remaining tests list
+    list.innerHTML = remaining.length
+        ? remaining.map(r => `<div class="list-item">
+            <span class="item-name">${esc(r.name)}</span>
+            <span class="item-coeff">×${r.coeff}</span>
+            <button class="btn-delete" onclick="deleteRemaining(${r.id})">✕</button>
+          </div>`).join('')
+        : '<div class="empty-state">Aucun test restant ajouté</div>';
+
+    // Compute result
+    if (!grades.length && !remaining.length) { result.innerHTML = ''; return; }
+
+    let curPts = 0, curW = 0;
+    grades.forEach(g => { curPts += g.value * g.coeff; curW += g.coeff; });
+
+    let remW = 0;
+    remaining.forEach(r => { remW += r.coeff; });
+
+    if (remW === 0) {
+        if (!grades.length) { result.innerHTML = ''; return; }
+        const avg = curPts / curW;
+        result.innerHTML = avg >= 4
+            ? '<div class="result-message message-green">✓ Moyenne assurée — aucun test restant à compléter</div>'
+            : '<div class="result-message message-red">✗ Rattrapage impossible — aucun test restant pour rattraper</div>';
+        return;
+    }
+
+    const totalW   = curW + remW;
+    const minGrade = (4.0 * totalW - curPts) / remW;
+
+    if (minGrade <= 1.0) {
+        result.innerHTML = '<div class="result-message message-green">✓ Moyenne assurée — même avec 1.0 partout vous passez !</div>';
+    } else if (minGrade > 6.0) {
+        result.innerHTML = '<div class="result-message message-red">✗ Rattrapage impossible — la note requise dépasse 6.0</div>';
+    } else {
+        const color = minGrade >= 5.5 ? 'red' : minGrade >= 4.5 ? 'orange' : 'green';
+        const badge = minGrade >= 5.5
+            ? '<span class="result-badge badge-red">Difficile</span>'
+            : minGrade >= 4.5
+                ? '<span class="result-badge badge-orange">Faisable</span>'
+                : '<span class="result-badge badge-green">Accessible</span>';
+        result.innerHTML = `<div class="result-card">
+            <div class="result-main">
+                <div>
+                    <div class="result-label">Moyenne minimale à obtenir sur les tests restants</div>
+                    <div class="min-grade-display ${color}">${minGrade.toFixed(2)}</div>
+                </div>
+                ${badge}
+            </div>
+        </div>`;
+    }
+}
+
+function resetSection2() {
+    if (!confirm('Réinitialiser les tests restants ?')) return;
+    remaining = []; save('s2_remaining', remaining);
+    renderMinGrade();
+}
+
+// ─────────────────────────────────────────────
+// SECTION 3 — Projets par périodes
+// ─────────────────────────────────────────────
+let projects = load('s3_projects');
+
+function addProject() {
+    const name    = document.getElementById('proj-name').value.trim();
+    const periods = parseInt(document.getElementById('proj-periods').value, 10);
+
+    if (!name)                        return alert('Entrez un nom pour le projet.');
+    if (isNaN(periods) || periods < 1) return alert('Nombre de périodes invalide (minimum 1).');
+
+    projects.push({ id: uid(), name, periods, success: false });
+    save('s3_projects', projects);
+    document.getElementById('proj-name').value    = '';
+    document.getElementById('proj-periods').value = '';
+    renderProjects();
+}
+
+function toggleProject(id) {
+    const p = projects.find(p => p.id === id);
+    if (!p) return;
+    p.success = !p.success;
+    save('s3_projects', projects);
+    renderProjects();
+}
+
+function deleteProject(id) {
+    projects = projects.filter(p => p.id !== id);
+    save('s3_projects', projects);
+    renderProjects();
+}
+
+function renderProjects() {
+    const list      = document.getElementById('projects-list');
+    const totalEl   = document.getElementById('s3-total');
+    const validEl   = document.getElementById('s3-validated');
+    const pctEl     = document.getElementById('s3-pct');
+    const bar       = document.getElementById('s3-bar');
+    const statusEl  = document.getElementById('s3-status');
+    const msgEl     = document.getElementById('s3-message');
+
+    if (!projects.length) {
+        list.innerHTML = '<div class="empty-state">Aucun projet ajouté</div>';
+        totalEl.textContent = '0';
+        validEl.textContent = '0';
+        pctEl.textContent   = '0%';
+        pctEl.className     = 'stat-value';
+        bar.style.width     = '0%';
+        bar.className       = 'progress-fill fill-red';
+        statusEl.textContent = '—';
+        msgEl.innerHTML     = '';
+        return;
+    }
+
+    const total     = projects.reduce((s, p) => s + p.periods, 0);
+    const validated = projects.filter(p => p.success).reduce((s, p) => s + p.periods, 0);
+    const pct       = total > 0 ? (validated / total) * 100 : 0;
+    const tier      = pct >= 80 ? 'green' : pct >= 60 ? 'orange' : 'red';
+
+    totalEl.textContent = total;
+    validEl.textContent = validated;
+    pctEl.textContent   = pct.toFixed(1) + '%';
+    pctEl.className     = `stat-value ${tier}`;
+    bar.style.width     = Math.min(pct, 100) + '%';
+    bar.className       = `progress-fill fill-${tier}`;
+
+    if (pct >= 80) {
+        statusEl.innerHTML = `<span class="green">✓ Objectif atteint (${pct.toFixed(1)}%)</span>`;
+        msgEl.innerHTML    = '<div class="result-message message-green">✓ Tu passes — tu as validé suffisamment de périodes !</div>';
+    } else {
+        const missing = Math.ceil(total * 0.8) - validated;
+        statusEl.innerHTML = `<span class="red">✗ Insuffisant (${pct.toFixed(1)}%)</span>`;
+        msgEl.innerHTML    = `<div class="result-message message-red">✗ Il te manque encore <strong>${missing}</strong> période(s) validée(s) pour atteindre 80%</div>`;
+    }
+
+    list.innerHTML = projects.map(p => `
+        <div class="list-item">
+            <span class="item-name">${esc(p.name)}</span>
+            <span class="item-periods">${p.periods} période(s)</span>
+            <div class="toggle-wrap">
+                <span class="toggle-label ${p.success ? 'green' : 'red'}">${p.success ? 'Réussi' : 'Échoué'}</span>
+                <label class="toggle">
+                    <input type="checkbox" ${p.success ? 'checked' : ''} onchange="toggleProject(${p.id})">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <button class="btn-delete" onclick="deleteProject(${p.id})">✕</button>
+        </div>`).join('');
+}
+
+function resetSection3() {
+    if (!confirm('Réinitialiser tous les projets ?')) return;
+    projects = []; save('s3_projects', projects);
+    renderProjects();
+}
+
+// ─────────────────────────────────────────────
+// Enter key support
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const id = e.target.id;
+    if (['grade-name','grade-value','grade-coeff'].includes(id)) addGrade();
+    if (['rem-name','rem-coeff'].includes(id))                   addRemaining();
+    if (['proj-name','proj-periods'].includes(id))               addProject();
+});
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+renderGrades();
+renderMinGrade();
+renderProjects();
+</script>
+</body>
+</html>

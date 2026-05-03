@@ -1,0 +1,2565 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes Scolaires</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem('theme')||'dark';if(t==='light')document.documentElement.classList.add('light');}())</script>
+<style>
+:root {
+  --glass-bg:     #111128;
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-shadow: rgba(0,0,0,0.35);
+  --acc:    #a78bfa;
+  --acc2:   #7c3aed;
+  --tx:     #f1f5f9;
+  --tx2:    rgba(241,245,249,0.55);
+  --tx3:    rgba(241,245,249,0.3);
+  --green:  #34d399;
+  --gbg:    rgba(52,211,153,0.12);
+  --red:    #fb7185;
+  --rbg:    rgba(251,113,133,0.12);
+  --orange: #f97316;
+  --obg:    rgba(249,115,22,0.12);
+  --r:  18px;
+  --rs: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#0a0a1a;color:var(--tx);min-height:100vh}
+input,button,select{font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+
+/* ── Welcome header ── */
+.welcome-header{text-align:center;padding:20px 0 10px;animation:fadeDown .8s ease both}
+.welcome-label{
+  font-size:11px;font-weight:500;letter-spacing:4px;text-transform:uppercase;
+  color:var(--tx2);margin-bottom:14px
+}
+.welcome-title{
+  font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1;
+  background:linear-gradient(135deg,#fff 0%,var(--acc) 50%,#38bdf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:12px
+}
+.welcome-sub{color:var(--tx2);font-size:15px;font-weight:300}
+
+/* ── Animated blob background ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3;animation:drift 12s ease-in-out infinite alternate}
+.blob-1{width:500px;height:500px;background:#7c3aed;top:-100px;left:-100px;animation-delay:0s}
+.blob-2{width:400px;height:400px;background:#0ea5e9;top:40%;right:-80px;animation-delay:-3s}
+.blob-3{width:350px;height:350px;background:#ec4899;bottom:-80px;left:30%;animation-delay:-6s}
+.blob-4{width:300px;height:300px;background:#10b981;top:20%;left:45%;animation-delay:-9s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,30px) scale(1.08)}}
+.bg::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.5;pointer-events:none
+}
+
+/* ── Auth overlay ── */
+#auth-overlay{
+  position:fixed;inset:0;
+  background:rgba(10,10,26,0.88);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:16px
+}
+.auth-box{
+  background:#13132e;
+  border:1px solid var(--glass-border);
+  border-radius:20px;padding:36px 32px;
+  width:100%;max-width:420px;
+  box-shadow:0 8px 32px var(--glass-shadow);
+  position:relative;overflow:hidden;
+  animation:fadeDown .6s ease both
+}
+.auth-box::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.06) 0%,transparent 60%);
+  pointer-events:none
+}
+.auth-box::after{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.6
+}
+.auth-box h2{
+  font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:6px;
+  background:linear-gradient(135deg,#fff 0%,var(--acc) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text
+}
+.auth-box p{color:var(--tx2);font-size:.88rem;margin-bottom:24px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:.73rem;color:var(--tx2);font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+.field input{
+  background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--tx);
+  padding:11px 14px;border-radius:var(--rs);font-size:.95rem;outline:none;transition:border-color .2s
+}
+.field input:focus{border-color:var(--acc)}
+.btn-primary{
+  width:100%;background:var(--acc);color:#fff;font-family:inherit;
+  padding:.35em 3.4em .35em 1.3em;height:2.8em;
+  border-radius:.9em;border:none;font-size:1rem;font-weight:600;letter-spacing:.04em;
+  display:flex;align-items:center;
+  box-shadow:inset 0 0 1.6em -0.6em var(--acc2);
+  overflow:hidden;position:relative;cursor:pointer;transition:opacity .15s
+}
+.btn-primary:hover{opacity:.93}
+.btn-primary .icon,.add-row .btn-add .icon,.btn-sm.add .icon,.btn-export-pdf .icon{
+  background:rgba(255,255,255,0.18);
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  border-radius:.65em;right:.3em;
+  transition:all .3s;
+  box-shadow:.1em .1em .6em .15em rgba(109,40,217,.45)
+}
+.btn-primary .icon{height:2.2em;width:2.2em}
+.btn-primary:hover .icon{width:calc(100% - .6em)}
+.btn-primary .icon svg{width:1.1em;color:#fff;transition:transform .3s}
+.btn-primary:hover .icon svg{transform:translateX(.1em)}
+.btn-primary:active .icon{transform:scale(.95)}
+.auth-switch{text-align:center;margin-top:16px;font-size:.85rem;color:var(--tx2)}
+.auth-switch a{color:var(--acc);cursor:pointer;text-decoration:none}
+.auth-switch a:hover{text-decoration:underline}
+.err-msg{
+  background:var(--rbg);color:var(--red);border:1px solid rgba(251,113,133,.3);
+  border-radius:var(--rs);padding:10px 14px;font-size:.85rem;margin-bottom:14px;display:none
+}
+
+/* ── Main app ── */
+#app{display:none;min-height:100vh;flex-direction:column;position:relative;z-index:1}
+
+/* Header */
+header{
+  background:#0d0d22;
+  border-bottom:1px solid var(--glass-border);
+  padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:50
+}
+.logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;
+  background:linear-gradient(135deg,#fff 0%,var(--acc) 60%,#38bdf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  white-space:nowrap
+}
+.filter-bar{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+.filter-bar .sel-wrap{position:relative;display:inline-flex;align-items:center}
+.filter-bar .sel-wrap::after{
+  content:'▾';position:absolute;right:10px;pointer-events:none;
+  font-size:.75rem;color:var(--acc);transition:transform .2s
+}
+.filter-bar select{
+  appearance:none;-webkit-appearance:none;
+  background:#1a1a38;
+  border:1px solid var(--glass-border);
+  color:var(--tx);
+  padding:8px 32px 8px 14px;
+  border-radius:20px;
+  font-size:.85rem;font-weight:500;
+  cursor:pointer;outline:none;
+  transition:border-color .2s, background .2s, box-shadow .2s;
+}
+.filter-bar select:hover{
+  background:#1f1f42;
+  border-color:rgba(167,139,250,.4);
+}
+.filter-bar select:focus{
+  border-color:var(--acc);
+  box-shadow:0 0 0 3px rgba(167,139,250,.15);
+}
+.filter-bar select option{background:#1a1a2e;color:var(--tx)}
+.search-wrap{position:relative;display:inline-flex;align-items:center}
+.search-wrap svg{position:absolute;left:10px;pointer-events:none;color:rgba(241,245,249,0.75);width:14px;z-index:1}
+.search-inp{
+  appearance:none;
+  background:#1a1a38;
+  border:1px solid var(--glass-border);
+  color:var(--tx);
+  padding:8px 14px 8px 30px;
+  border-radius:20px;
+  font-size:.85rem;font-weight:500;font-family:inherit;
+  outline:none;width:180px;
+  transition:border-color .2s,background .2s,box-shadow .2s,width .25s;
+}
+.search-inp::placeholder{color:var(--tx3)}
+.search-inp:hover{background:#1f1f42;border-color:rgba(167,139,250,.4)}
+.search-inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(167,139,250,.15);width:220px}
+.header-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.user-badge{
+  background:#1a1a38;border:1px solid var(--glass-border);
+  padding:5px 12px;border-radius:20px;font-size:.82rem;color:var(--tx2)
+}
+.btn-sm{
+  background:transparent;border:1px solid var(--glass-border);color:var(--tx2);
+  padding:6px 12px;border-radius:var(--rs);font-size:.8rem;cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.btn-sm:hover{border-color:var(--red);color:var(--red)}
+.btn-sm.add{
+  background:var(--acc);color:#fff;border:none;
+  padding:.28em 2.6em .28em .9em;height:2.1em;
+  border-radius:.75em;font-size:.8rem;font-weight:600;
+  box-shadow:inset 0 0 1.2em -0.5em var(--acc2);
+  overflow:hidden;position:relative;transition:opacity .15s
+}
+.btn-sm.add:hover{opacity:.9;border-color:transparent}
+.btn-sm.add .icon{height:1.6em;width:1.6em}
+.btn-sm.add:hover .icon{width:calc(100% - .45em)}
+.btn-sm.add .icon svg{width:.8em;color:#fff;transition:transform .3s}
+.btn-sm.add:hover .icon svg{transform:translateX(.1em)}
+.btn-sm.add:active .icon{transform:scale(.95)}
+
+/* Dashboard action buttons group */
+.dash-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Export PDF button */
+.btn-export-pdf{
+  background:var(--acc);color:#fff;font-family:inherit;
+  padding:.28em 2.6em .28em .9em;height:2.1em;
+  border-radius:.75em;border:none;font-size:.8rem;font-weight:600;
+  box-shadow:inset 0 0 1.2em -0.5em var(--acc2);
+  overflow:hidden;position:relative;cursor:pointer;
+  display:flex;align-items:center;white-space:nowrap;transition:opacity .15s
+}
+.btn-export-pdf:hover{opacity:.9}
+.btn-export-pdf .icon{height:1.6em;width:1.6em}
+.btn-export-pdf:hover .icon{width:calc(100% - .45em)}
+.btn-export-pdf .icon svg{width:.8em;color:#fff;transition:transform .3s}
+.btn-export-pdf:hover .icon svg{transform:translateX(.1em)}
+.btn-export-pdf:active .icon{transform:scale(.95)}
+
+/* Main content */
+main{padding:28px 20px;max-width:1100px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:24px}
+
+/* Section — glass card */
+.section{
+  background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:26px;
+  box-shadow:0 8px 32px var(--glass-shadow);
+  position:relative;overflow:hidden;animation:fadeUp .7s ease both
+}
+.section::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.05) 0%,transparent 60%);pointer-events:none
+}
+.section:nth-child(2){animation-delay:.1s}
+.section:nth-child(2)::after{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.5
+}
+.section:nth-child(3){animation-delay:.25s}
+.section:nth-child(3)::after{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,#38bdf8,transparent);opacity:.5
+}
+.section:nth-child(4){animation-delay:.4s}
+.section:nth-child(4)::after{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,#34d399,transparent);opacity:.5
+}
+.section:nth-child(5){animation-delay:.55s}
+.section:nth-child(5)::after{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,#fb7185,transparent);opacity:.5
+}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+.sec-title{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Syne',sans-serif;font-size:1rem;font-weight:700
+}
+.sec-icon{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0
+}
+.ic1{background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.25)}
+.ic2{background:rgba(52,211,153,.2);border:1px solid rgba(52,211,153,.25)}
+.ic3{background:rgba(56,189,248,.2);border:1px solid rgba(56,189,248,.25)}
+
+/* Inline add row */
+.add-row{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;
+  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+  border-radius:var(--rs);padding:14px;margin-bottom:14px
+}
+.add-row .fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:110px}
+.add-row label{font-size:.73rem;color:var(--tx2);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.add-row input,.add-row select{
+  background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--tx);
+  padding:8px 12px;border-radius:var(--rs);font-size:.9rem;outline:none;width:100%;transition:border-color .2s
+}
+.add-row input:focus,.add-row select:focus{border-color:var(--acc)}
+.add-row .btn-add{
+  background:var(--acc);color:#fff;font-family:inherit;
+  padding:.35em 3em .35em 1.1em;height:2.6em;
+  border-radius:.9em;border:none;font-size:.9rem;font-weight:600;letter-spacing:.03em;
+  display:flex;align-items:center;white-space:nowrap;
+  box-shadow:inset 0 0 1.4em -0.6em var(--acc2);
+  overflow:hidden;position:relative;cursor:pointer;
+  align-self:flex-end;transition:opacity .15s
+}
+.add-row .btn-add:hover{opacity:.93}
+.add-row .btn-add .icon{height:2em;width:2em}
+.add-row .btn-add:hover .icon{width:calc(100% - .55em)}
+.add-row .btn-add .icon svg{width:1em;color:#fff;transition:transform .3s}
+.add-row .btn-add:hover .icon svg{transform:translateX(.1em)}
+.add-row .btn-add:active .icon{transform:scale(.95)}
+
+/* Subject cards */
+#subjects-container{display:flex;flex-direction:column;gap:24px}
+.subject-card{
+  background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);
+  border-radius:16px;overflow:hidden;transition:border-color .25s, box-shadow .25s;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3)
+}
+.subject-card:hover{border-color:rgba(255,255,255,0.2);box-shadow:0 8px 32px rgba(0,0,0,0.45)}
+.subject-header{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;transition:background .15s
+}
+.subject-header:hover{background:rgba(255,255,255,0.03)}
+.subject-name{font-weight:600;font-size:.97rem;flex:1;font-family:'Syne',sans-serif}
+.subject-avg{font-size:1.2rem;font-weight:700;min-width:44px;text-align:right}
+.subject-badge{
+  padding:4px 12px;border-radius:14px;font-size:.72rem;font-weight:600;
+  white-space:nowrap;text-transform:uppercase;letter-spacing:.04em
+}
+.badge-g{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.badge-r{background:rgba(251,113,133,.15);color:var(--red);border:1px solid rgba(251,113,133,.3)}
+.badge-o{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.badge-n{background:rgba(255,255,255,.06);color:var(--tx3);border:1px solid var(--glass-border)}
+.chevron{color:var(--tx3);font-size:.85rem;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.btn-del-sub{
+  background:none;border:none;color:var(--tx3);cursor:pointer;
+  padding:4px 8px;border-radius:6px;font-size:.9rem;transition:all .2s
+}
+.btn-del-sub:hover{color:var(--red);background:rgba(251,113,133,.12)}
+
+/* Subject body */
+.subject-body{border-top:1px solid var(--glass-border);padding:18px;display:none}
+.subject-body.open{display:block}
+.sub-sections{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.sub-sections{grid-template-columns:1fr}}
+.sub-sec-title{
+  font-size:.72rem;font-weight:600;color:var(--tx2);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px
+}
+
+/* Mini item list */
+.mini-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.mini-item{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:8px 12px
+}
+.mi-name{flex:1;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mi-weight{
+  font-size:.73rem;color:var(--tx3);
+  background:rgba(255,255,255,0.06);padding:2px 7px;border-radius:4px;white-space:nowrap
+}
+.mi-grade{font-weight:700;font-size:.95rem;min-width:32px;text-align:right}
+.btn-x{
+  background:none;border:none;color:var(--tx3);cursor:pointer;
+  padding:2px 6px;border-radius:4px;font-size:.8rem;transition:all .2s;flex-shrink:0
+}
+.btn-x:hover{color:var(--red);background:rgba(251,113,133,.12)}
+.empty-mini{color:var(--tx3);font-size:.82rem;text-align:center;padding:12px 0}
+
+/* Mini add form */
+.mini-add{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-end}
+.mini-add input{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--tx);
+  padding:7px 10px;border-radius:8px;font-size:.85rem;outline:none;flex:1;min-width:60px;transition:border-color .2s
+}
+.mini-add input:focus{border-color:var(--acc)}
+.mini-add .btn-mini{
+  background:var(--acc);color:#fff;border:none;
+  padding:9px 2.3em 9px 2.7em;
+  border-radius:.75em;font-size:.82rem;font-weight:600;
+  box-shadow:inset 0 0 1.2em -0.5em var(--acc2);
+  overflow:hidden;position:relative;cursor:pointer;
+  white-space:nowrap;transition:opacity .15s;
+  display:flex;align-items:center;flex-shrink:0
+}
+.mini-add .btn-mini .icon{
+  background:rgba(255,255,255,0.18);
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  border-radius:.6em;left:.3em;
+  height:1.55em;width:1.55em;
+  transition:all .3s;
+  box-shadow:.1em .1em .6em .15em rgba(109,40,217,.45)
+}
+.mini-add .btn-mini:hover .icon{width:calc(100% - .6em)}
+.mini-add .btn-mini .icon svg{width:.78em;color:#fff;transition:transform .3s,opacity .25s}
+.mini-add .btn-mini:hover .icon svg{opacity:0}
+.mini-add .btn-mini:active .icon{transform:scale(.95)}
+
+/* Min grade result box */
+.min-grade-box{
+  margin-top:14px;padding:16px;border-radius:var(--rs);text-align:center;grid-column:1/-1
+}
+.mgb-label{font-size:.75rem;color:inherit;opacity:.75;margin-bottom:4px}
+.mgb-value{font-size:2.2rem;font-weight:800;line-height:1;font-family:'Syne',sans-serif}
+.mgb-sub{font-size:.8rem;margin-top:4px;opacity:.75}
+.mgb-green {background:rgba(52,211,153,.12); color:var(--green); border:1px solid rgba(52,211,153,.3)}
+.mgb-red   {background:rgba(251,113,133,.12);color:var(--red);   border:1px solid rgba(251,113,133,.3)}
+.mgb-orange{background:rgba(249,115,22,.12); color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.mgb-neutral{background:rgba(255,255,255,.06);color:var(--tx2); border:1px solid var(--glass-border)}
+
+/* Weight warning */
+.weight-warn{font-size:.75rem;padding:6px 12px;border-radius:6px;text-align:center;margin-top:6px}
+.ww-ok {color:var(--green); background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.2)}
+.ww-err{color:var(--orange);background:rgba(249,115,22,.1); border:1px solid rgba(249,115,22,.2)}
+
+/* Projects */
+.proj-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{
+  background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);
+  border-radius:var(--rs);padding:16px;text-align:center
+}
+.stat-val{font-size:1.8rem;font-weight:700;margin-bottom:3px;font-family:'Syne',sans-serif}
+.stat-lbl{font-size:.72rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em}
+
+.prog-track{background:rgba(255,255,255,0.08);border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px}
+.prog-fill{height:100%;border-radius:8px;transition:width .4s,background .3s}
+.pf-g{background:linear-gradient(90deg,#059669,#34d399)}
+.pf-o{background:linear-gradient(90deg,#c2410c,#f97316)}
+.pf-r{background:linear-gradient(90deg,#be123c,#fb7185)}
+.prog-labels{display:flex;justify-content:space-between;font-size:.77rem;color:var(--tx3);margin-bottom:12px}
+.proj-msg{
+  font-size:.9rem;font-weight:600;padding:11px 16px;border-radius:var(--rs);
+  text-align:center;margin-bottom:14px
+}
+.proj-list{display:flex;flex-direction:column;gap:7px;max-height:280px;overflow-y:auto}
+.proj-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  border-radius:var(--rs);padding:10px 14px
+}
+.proj-name{flex:1;font-weight:500;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj-periods{font-size:.8rem;color:var(--tx2);white-space:nowrap}
+
+/* Toggle */
+.toggle-wrap{display:flex;align-items:center;gap:8px}
+.tgl-lbl{font-size:.77rem;font-weight:500;min-width:42px}
+.toggle{position:relative;width:42px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.tgl-s{
+  position:absolute;inset:0;
+  background:rgba(251,113,133,.15);border:1px solid rgba(251,113,133,.4);
+  border-radius:22px;cursor:pointer;transition:.3s
+}
+.tgl-s::before{
+  content:'';position:absolute;height:14px;width:14px;left:3px;top:3px;
+  background:var(--red);border-radius:50%;transition:.3s
+}
+.toggle input:checked+.tgl-s{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4)}
+.toggle input:checked+.tgl-s::before{transform:translateX(20px);background:var(--green)}
+
+/* Semantic text colors */
+.green {color:var(--green)}
+.orange{color:var(--orange)}
+.red   {color:var(--red)}
+
+/* ── Culture Générale ── */
+.cg-indicators{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.cg-ind{
+  background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);
+  border-radius:var(--rs);padding:14px 12px;text-align:center
+}
+.cg-ind-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:6px}
+.cg-ind-val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;line-height:1;margin-bottom:4px}
+.cg-ind-status{font-size:.8rem;font-weight:600}
+.cg-semesters{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.cg-semesters{grid-template-columns:1fr}}
+.cg-sem{
+  background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);
+  border-radius:14px;padding:16px
+}
+.cg-sem-title{
+  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  margin-bottom:14px;display:flex;align-items:center;justify-content:space-between
+}
+.cg-sem-avg{font-size:.85rem;font-weight:600}
+.cg-test-item{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;padding:8px 12px;margin-bottom:6px
+}
+.cg-pts{font-size:.78rem;color:var(--tx3);background:rgba(255,255,255,0.06);padding:2px 7px;border-radius:4px;white-space:nowrap}
+.cg-grade{font-weight:700;font-size:.95rem;min-width:36px;text-align:right;white-space:nowrap}
+.cg-min-box{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:10px 12px;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px
+}
+.cg-min-info{flex:1;font-size:.82rem}
+.cg-min-pts{font-weight:700;font-size:.9rem;white-space:nowrap}
+.cg-min-sub{font-size:.72rem;color:var(--tx3);margin-top:2px}
+.cg-sem-badge{font-size:.8rem;color:var(--tx2);white-space:nowrap}
+#cg-subjects-container{display:flex;flex-direction:column;gap:24px}
+
+/* Petits tests */
+.cg-small-item{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,.15);
+  border-left:2px solid rgba(167,139,250,.4);
+  border-radius:8px;padding:7px 12px;margin-bottom:5px
+}
+.cg-small-avg{
+  background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);
+  border-radius:8px;padding:9px 12px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;font-size:.82rem
+}
+.cg-small-avg-label{color:var(--tx2)}
+.cg-small-avg-hint{font-size:.7rem;color:var(--tx3);margin-left:4px}
+
+/* Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:780px){.dash-grid{grid-template-columns:1fr 1fr}}
+.dash-stat{
+  background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);
+  border-radius:14px;padding:18px 14px;text-align:center;position:relative;overflow:hidden
+}
+.dash-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.dash-stat.ds-green{border-color:rgba(52,211,153,.25)}
+.dash-stat.ds-green::before{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.dash-stat.ds-orange{border-color:rgba(249,115,22,.25)}
+.dash-stat.ds-orange::before{background:linear-gradient(90deg,transparent,var(--orange),transparent)}
+.dash-stat.ds-red{border-color:rgba(251,113,133,.25)}
+.dash-stat.ds-red::before{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.dash-stat.ds-neutral{border-color:rgba(167,139,250,.2)}
+.dash-stat.ds-neutral::before{background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:.6}
+.dash-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:8px}
+.dash-value{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;line-height:1;margin-bottom:5px}
+.dash-sub{font-size:.72rem;color:var(--tx3)}
+.dash-status-box{
+  border-radius:14px;padding:15px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap
+}
+.ds-box-ok {background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.3)}
+.ds-box-warn{background:rgba(251,113,133,.08);border:1px solid rgba(251,113,133,.3)}
+.ds-box-empty{background:rgba(255,255,255,.04);border:1px solid var(--glass-border)}
+.dash-status-icon{font-size:1.5rem;flex-shrink:0}
+.dash-status-main{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:3px}
+.dash-status-issues{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.dash-issue-tag{
+  font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:20px;
+  background:rgba(251,113,133,.15);color:var(--red);border:1px solid rgba(251,113,133,.3)
+}
+
+.empty-state{color:var(--tx3);text-align:center;padding:24px;font-size:.88rem}
+
+/* Scroll to top */
+#scroll-top{
+  position:fixed;bottom:28px;right:28px;z-index:9999;
+  width:42px;height:42px;border-radius:50%;border:1px solid rgba(167,139,250,.4);
+  background:#0d0d22;color:var(--acc);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .3s,transform .3s,right .3s ease
+}
+#scroll-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+#scroll-top:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+#scroll-top.toast-push{right:252px}
+#btn-add-project .icon svg,
+.mini-add .btn-mini .icon svg{transition:transform .3s,opacity .25s}
+#btn-add-project:hover .icon svg,
+.mini-add .btn-mini:hover .icon svg{opacity:0}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* Gamification */
+.gp-section{margin-bottom:16px}
+.gp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.gp-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);font-weight:600}
+.gp-pct{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.gp-bar{height:10px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden}
+.gp-fill{height:100%;border-radius:10px;transition:width .6s ease;background:linear-gradient(90deg,var(--acc2),var(--acc),#38bdf8)}
+.badges-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 13px;border-radius:20px;font-size:.76rem;font-weight:600;white-space:nowrap
+}
+.badge-fire   {background:rgba(251,146,60,.15);  color:#fb923c; border:1px solid rgba(251,146,60,.4)}
+.badge-star   {background:rgba(250,204,21,.12);  color:#eab308; border:1px solid rgba(250,204,21,.35)}
+.badge-warn   {background:rgba(249,115,22,.12);  color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.badge-danger {background:rgba(251,113,133,.12); color:var(--red);  border:1px solid rgba(251,113,133,.3)}
+.badge-trophy {background:rgba(167,139,250,.12); color:var(--acc);  border:1px solid rgba(167,139,250,.3)}
+.badge-grad   {background:rgba(52,211,153,.12);  color:var(--green);border:1px solid rgba(52,211,153,.3)}
+
+/* Objectif / progression */
+.obj-row{display:flex;align-items:center;gap:10px;margin:10px 0 4px;flex-wrap:wrap}
+.obj-label{font-size:.75rem;color:var(--tx2);white-space:nowrap;font-weight:500}
+.obj-inp{
+  background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);color:var(--tx);
+  padding:4px 8px;border-radius:6px;font-size:.85rem;font-weight:600;width:62px;
+  outline:none;font-family:inherit;transition:border-color .2s;text-align:center
+}
+.obj-inp:focus{border-color:var(--acc)}
+.obj-bar-wrap{
+  flex:1;min-width:60px;height:7px;
+  background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden
+}
+.obj-bar-fill{height:100%;border-radius:6px;transition:width .5s ease}
+.bar-g{background:linear-gradient(90deg,#059669,#34d399)}
+.bar-o{background:linear-gradient(90deg,#c2410c,#f97316)}
+.bar-r{background:linear-gradient(90deg,#be123c,#fb7185)}
+.obj-info{font-size:.76rem;color:var(--tx2);white-space:nowrap}
+
+/* Edit controls */
+.grade-comment{display:block;font-size:.73rem;color:var(--tx3);font-style:italic;margin-top:3px;cursor:pointer;line-height:1.3;max-width:220px;word-break:break-word}
+.grade-comment:hover{color:var(--acc)}
+.grade-comment-empty{opacity:.35}
+.grade-comment-empty:hover{opacity:.7}
+.comment-inp{background:rgba(255,255,255,0.06);border:1px solid var(--acc);color:var(--tx);padding:2px 7px;border-radius:5px;font-size:.73rem;font-style:italic;outline:none;width:180px;margin-top:3px}
+.btn-edit{
+  background:none;border:none;color:var(--tx3);cursor:pointer;
+  padding:2px 5px;border-radius:4px;font-size:.78rem;transition:all .2s;flex-shrink:0
+}
+.btn-edit:hover{color:var(--acc);background:rgba(167,139,250,.12)}
+.edit-form{
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,.2);
+  border-radius:8px;padding:7px 10px;margin-bottom:6px
+}
+.edit-form input{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--tx);
+  padding:5px 8px;border-radius:6px;font-size:.83rem;outline:none;flex:1;min-width:70px;
+  font-family:inherit;transition:border-color .2s
+}
+.edit-form input:focus{border-color:var(--acc)}
+.btn-save{
+  background:var(--acc);color:#fff;border:none;padding:5px 10px;border-radius:6px;
+  font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s
+}
+.btn-save:hover{background:var(--acc2)}
+.btn-cancel{
+  background:rgba(255,255,255,0.07);color:var(--tx2);border:1px solid var(--glass-border);
+  padding:5px 10px;border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s;white-space:nowrap
+}
+.btn-cancel:hover{border-color:var(--red);color:var(--red)}
+
+
+/* Animations */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)}}
+@keyframes spin    {from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── Burger button ── */
+.btn-burger{
+  display:none;
+  background:transparent;border:1px solid var(--glass-border);color:var(--tx2);
+  width:36px;height:36px;border-radius:var(--rs);
+  flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  cursor:pointer;margin-left:auto;flex-shrink:0;transition:all .2s;padding:0
+}
+.btn-burger:hover{border-color:var(--acc);color:var(--acc)}
+.btn-burger span{display:block;width:18px;height:2px;background:currentColor;border-radius:2px;transition:all .28s ease}
+.btn-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.btn-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.btn-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── Header menu (desktop: flex row inline) ── */
+.header-menu{display:contents}
+
+@media(max-width:600px){
+  .btn-json-only{display:none}
+  .btn-burger{display:flex}
+  header{position:relative;flex-wrap:nowrap;justify-content:space-between}
+
+  /* Menu fermé : contenu caché */
+  .header-menu{
+    display:none;
+    position:absolute;top:100%;left:0;right:0;
+    background:#0d0d22;
+    border-bottom:1px solid var(--glass-border);
+    padding:14px 16px;
+    flex-direction:column;gap:12px;
+    z-index:48
+  }
+  .header-menu.open{display:flex}
+
+  /* Filtres pleine largeur */
+  .filter-bar{flex-direction:column;width:100%}
+  .filter-bar .sel-wrap{width:100%}
+  .filter-bar select{width:100%}
+  .search-wrap{width:100%}
+  .search-inp{width:100% !important}
+  .header-right{margin-left:0;width:100%;justify-content:space-between}
+
+  .proj-summary{grid-template-columns:1fr 1fr}
+  main{padding:14px}
+}
+
+html.light .header-menu{background:#c8d3e0}
+
+/* ── Theme toggle button ── */
+.btn-theme{
+  background:transparent;border:1px solid var(--glass-border);color:var(--tx2);
+  width:34px;height:34px;border-radius:var(--rs);flex-shrink:0;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s
+}
+.btn-theme:hover{border-color:var(--acc);color:var(--acc);background:rgba(167,139,250,.1)}
+.btn-theme svg{pointer-events:none}
+
+/* ── Light mode ── */
+html.light{
+  --glass-bg:     #ffffff;
+  --glass-border: #e2e8f0;
+  --glass-shadow: rgba(0,0,0,0.07);
+  --acc:    #6d28d9;
+  --acc2:   #5b21b6;
+  --tx:     #0f172a;
+  --tx2:    #475569;
+  --tx3:    #94a3b8;
+  --green:  #059669;
+  --gbg:    rgba(5,150,105,0.1);
+  --red:    #dc2626;
+  --rbg:    rgba(220,38,38,0.09);
+  --orange: #c2410c;
+  --obg:    rgba(194,65,12,0.09);
+}
+
+/* Fond général */
+html.light body{background:#d1d9e6;color:#0f172a}
+
+/* Header — blanc solide, pas de blur */
+html.light header{
+  background:#c8d3e0;
+  border-bottom-color:#b0bdd0;
+  backdrop-filter:none;-webkit-backdrop-filter:none
+}
+html.light .logo{
+  background:linear-gradient(135deg,#0f172a 0%,#6d28d9 60%,#0ea5e9 100%);
+  -webkit-background-clip:text;background-clip:text
+}
+html.light .welcome-title{
+  background:linear-gradient(135deg,#0f172a 0%,#6d28d9 50%,#0ea5e9 100%);
+  -webkit-background-clip:text;background-clip:text
+}
+html.light .welcome-sub{color:#475569}
+
+/* Filtres & recherche */
+html.light .filter-bar select{
+  background:#ffffff;color:#0f172a;
+  border-color:#cbd5e1
+}
+html.light .filter-bar select:hover{background:#f8fafc;border-color:#6d28d9}
+html.light .filter-bar select option{background:#ffffff;color:#0f172a}
+html.light .search-inp{background:#ffffff;color:#0f172a;border-color:#cbd5e1}
+html.light .search-inp:hover{background:#f8fafc;border-color:#94a3b8}
+html.light .search-inp:focus{background:#ffffff}
+html.light .search-wrap svg{color:#334155}
+html.light .search-inp::placeholder{color:#94a3b8}
+
+/* Badge utilisateur + boutons header */
+html.light .user-badge{background:#f1f5f9;border-color:#e2e8f0;color:#475569}
+html.light .btn-sm{background:transparent;border-color:#b0bdd0;color:#475569}
+html.light .btn-sm:hover{background:#f1f5f9;border-color:#8899b0;color:#475569}
+html.light .btn-theme{border-color:#e2e8f0;color:#475569}
+html.light .btn-theme:hover{border-color:#6d28d9;color:#6d28d9;background:rgba(109,40,217,.08)}
+html.light .btn-primary,
+html.light .add-row .btn-add,
+html.light .btn-sm.add{background:#a78bfa;box-shadow:inset 0 0 1.4em -0.6em #7c3aed;color:#fff}
+html.light .btn-export-pdf{background:#a78bfa;box-shadow:inset 0 0 1.2em -0.5em #7c3aed;color:#fff}
+
+/* Auth overlay */
+html.light #auth-overlay{background:rgba(200,211,230,0.95)}
+html.light .auth-box{background:#ffffff;border-color:#e2e8f0;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+html.light .auth-box::before{display:none}
+html.light .field input{background:#f8fafc;color:#0f172a;border-color:#cbd5e1}
+html.light .field input:focus{border-color:#6d28d9}
+
+/* Sections — cartes blanches solides, pas de blur */
+html.light .section{
+  background:#c8d3e0;
+  border:1px solid #b0bdd0;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  box-shadow:0 2px 10px rgba(0,0,0,.08)
+}
+html.light .section::before{display:none}
+
+/* Cartes matières */
+html.light .subject-card{
+  background:#c8d3e0;border:1px solid #b0bdd0;
+  box-shadow:0 1px 4px rgba(0,0,0,.06)
+}
+html.light .subject-card:hover{border-color:#8899b0;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+html.light .subject-header:hover{background:#e4eaf2}
+html.light .subject-body{background:#bec9d8;border-top-color:#b0bdd0}
+
+/* Formulaires d'ajout */
+html.light .add-row{background:#ddeeff;border-color:#b8d4ee}
+html.light .add-row input,html.light .add-row select{
+  background:#ffffff;color:#0f172a;border-color:#b0bdd0
+}
+html.light .add-row input:focus,html.light .add-row select:focus{border-color:#6d28d9}
+html.light .add-row label{color:#475569}
+
+/* Listes d'éléments */
+html.light .mini-item{background:#ddeeff;border-color:#b8d4ee}
+html.light .mi-name{color:#0f172a}
+html.light .mi-weight{background:#e8edf5;color:#475569}
+html.light .mini-add input{background:#ddeeff;color:#0f172a;border-color:#b8d4ee}
+html.light .mini-add input:focus{border-color:#6d28d9}
+html.light .empty-mini{color:#94a3b8}
+
+/* Formulaire d'édition inline */
+html.light .edit-form{background:#f8fafc;border-color:#e2e8f0}
+html.light .edit-form input{background:#ffffff;color:#0f172a;border-color:#cbd5e1}
+html.light .edit-form input:focus{border-color:#6d28d9}
+html.light .btn-cancel{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+html.light .btn-save{background:#6d28d9}
+html.light .btn-save:hover{background:#5b21b6}
+html.light .grade-comment{color:#475569}
+html.light .grade-comment-empty{color:#64748b;opacity:1}
+html.light .comment-inp{background:#ffffff;color:#0f172a;border-color:#6d28d9}
+html.light .obj-inp{background:#ffffff;color:#0f172a;border-color:#cbd5e1}
+html.light .obj-inp:focus{border-color:#6d28d9}
+html.light .obj-label{color:#475569}
+html.light .obj-info{color:#475569}
+
+/* Projets */
+html.light .proj-item{background:#ddeeff;border-color:#b8d4ee}
+html.light .proj-name{color:#0f172a}
+html.light .proj-periods{color:#475569}
+html.light .stat{background:#ddeeff;border-color:#b8d4ee}
+html.light .stat-val{color:#0f172a}
+html.light .stat-lbl{color:#94a3b8}
+html.light .prog-track{background:#e2e8f0}
+html.light .prog-labels{color:#64748b}
+html.light .proj-msg{color:#0f172a}
+
+/* Dashboard */
+html.light .dash-stat{background:#ddeeff;border-color:#b8d4ee}
+html.light .dash-label{color:#94a3b8}
+html.light .dash-sub{color:#94a3b8}
+html.light .gp-bar{background:#e2e8f0}
+html.light .gp-label{color:#64748b}
+html.light .ds-box-empty{background:#f8fafc;border-color:#e2e8f0}
+
+/* Culture Générale */
+html.light .cg-ind{background:#ddeeff;border-color:#b8d4ee}
+html.light .cg-ind-label{color:#64748b}
+html.light .cg-sem{background:#ddeeff;border-color:#b8d4ee}
+html.light .cg-sem-title{color:#0f172a}
+html.light .cg-sem-badge{color:#64748b}
+html.light .cg-test-item{background:#ddeeff;border-color:#b8d4ee}
+html.light .cg-small-item{background:#f5f3ff;border-color:#ddd6fe;border-left-color:#6d28d9}
+html.light .cg-small-avg{background:#f5f3ff;border-color:#ddd6fe}
+html.light .cg-small-avg-label{color:#475569}
+html.light .cg-small-avg-hint{color:#94a3b8}
+html.light .cg-pts{background:#f1f5f9;color:#64748b}
+html.light .cg-min-box{background:#f8fafc;border-color:#e2e8f0}
+html.light .cg-min-sub{color:#94a3b8}
+
+/* Min grade boxes */
+html.light .mgb-neutral{background:#f1f5f9;border-color:#e2e8f0;color:#475569}
+
+/* Barres de progression */
+html.light .obj-bar-wrap{background:#e2e8f0}
+
+/* Scroll to top */
+html.light #scroll-top{
+  background:#ffffff;border-color:#e2e8f0;color:#6d28d9;
+  box-shadow:0 2px 12px rgba(0,0,0,.08)
+}
+html.light #scroll-top:hover{background:#6d28d9;border-color:#6d28d9;color:#fff}
+
+/* Blobs très discrets */
+html.light .badge-star{background:rgba(161,98,7,.12);color:#92400e;border-color:rgba(161,98,7,.35)}
+html.light .blob{opacity:.2}
+</style>
+</head>
+<body>
+
+<!-- Blobs -->
+<div class="bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+
+<!-- ═══════════════════════════════ AUTH ═══════════════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <h2 id="auth-title">Connexion</h2>
+    <p id="auth-sub">Accédez à vos notes scolaires</p>
+    <div class="err-msg" id="auth-err"></div>
+
+    <div class="field" id="field-email" style="display:none">
+      <label>Email</label>
+      <input type="email" id="inp-email" placeholder="exemple@email.com" />
+    </div>
+    <div class="field">
+      <label>Nom d'utilisateur</label>
+      <input type="text" id="inp-username" placeholder="ton_pseudo" />
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="inp-password" placeholder="••••••••" />
+    </div>
+
+    <button class="btn-primary" id="auth-btn" onclick="submitAuth()">
+      <span id="auth-btn-text">Se connecter</span>
+      <div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div>
+    </button>
+    <div class="auth-switch">
+      <span id="auth-switch-text">Pas encore de compte ?</span>
+      <a onclick="toggleAuthMode()"> <span id="auth-switch-link">S'inscrire</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ APP ════════════════════════════════════ -->
+<div id="app">
+  <header>
+    <span class="logo">📚 Notes Scolaires</span>
+    <button class="btn-burger" id="btn-burger" onclick="toggleBurger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="header-menu" id="header-menu">
+      <div class="filter-bar">
+        <div class="sel-wrap">
+          <select id="sel-year" onchange="onFilterChange()">
+            <option value="1">Année 1</option>
+            <option value="2">Année 2</option>
+            <option value="3">Année 3</option>
+            <option value="4">Année 4</option>
+          </select>
+        </div>
+        <div class="sel-wrap">
+          <select id="sel-trim" onchange="onFilterChange()">
+            <option value="1">Trimestre 1</option>
+            <option value="2">Trimestre 2</option>
+            <option value="3">Trimestre 3</option>
+            <option value="4">Trimestre 4</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-inp" id="search-inp" type="text" placeholder="Rechercher une matière…" oninput="onSearch()" />
+      </div>
+      <div class="header-right">
+        <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <span class="user-badge" id="user-badge">—</span>
+        <button class="btn-sm" onclick="logout()">Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Welcome header -->
+    <div class="welcome-header">
+      <p class="welcome-label" id="welcome-label">—</p>
+      <h1 class="welcome-title">Mes Notes</h1>
+      <p class="welcome-sub">Suis tes résultats, anticipe tes examens et gère tes projets.</p>
+    </div>
+
+    <!-- Tableau de bord -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title"><div class="sec-icon ic1">📊</div>Tableau de bord</div>
+        <div class="dash-actions">
+          <button class="btn-export-pdf" onclick="exportPDF()">
+            Exporter PDF
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <button class="btn-sm add btn-json-only" onclick="exportJSON()">
+            Exporter JSON
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <button class="btn-sm add btn-json-only" onclick="triggerImport()">
+            Importer JSON
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
+        </div>
+      </div>
+      <div id="dash-progress"></div>
+      <div id="dash-badges"></div>
+      <div class="dash-grid" id="dash-stats"></div>
+      <div id="dash-status"></div>
+    </div>
+
+    <!-- Matières -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">
+          <div class="sec-icon ic1">📖</div>
+          Matières
+        </div>
+        <button class="btn-sm add" onclick="toggleAddSubject()">Ajouter une matière<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-subject-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom de la matière</label>
+          <input type="text" id="inp-subj-name" placeholder="ex: Mathématiques" />
+        </div>
+        <button class="btn-add" onclick="addSubject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="subjects-container">
+        <div class="empty-state">Aucune matière pour cette période</div>
+      </div>
+    </div>
+
+    <!-- Culture Générale -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title"><div class="sec-icon ic3">🎓</div>Culture Générale</div>
+        <button class="btn-sm add" onclick="toggleAddCGSubject()">Ajouter une matière<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-cg-subject-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom de la matière</label>
+          <input type="text" id="inp-cg-subj-name" placeholder="ex: Français" />
+        </div>
+        <button class="btn-add" onclick="addCGSubject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div class="cg-indicators">
+        <div class="cg-ind"><div class="cg-ind-label">Moy. S1</div><div class="cg-ind-val" id="cg-s1-avg">—</div><div class="cg-ind-status" id="cg-s1-status">—</div></div>
+        <div class="cg-ind"><div class="cg-ind-label">Moy. S2</div><div class="cg-ind-val" id="cg-s2-avg">—</div><div class="cg-ind-status" id="cg-s2-status">—</div></div>
+        <div class="cg-ind"><div class="cg-ind-label">Moyenne annuelle</div><div class="cg-ind-val" id="cg-yr-avg">—</div><div class="cg-ind-status" id="cg-yr-status">—</div></div>
+      </div>
+
+      <div id="cg-subjects-container">
+        <div class="empty-state">Aucune matière CG — ajoutez-en une ci-dessus</div>
+      </div>
+    </div>
+
+    <!-- Projets -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">
+          <div class="sec-icon ic2">🏗️</div>
+          Projets par Périodes
+        </div>
+        <button class="btn-sm add" onclick="toggleAddProject()">Ajouter un projet<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-project-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom du projet</label>
+          <input type="text" id="inp-proj-name" placeholder="ex: Projet Web" />
+        </div>
+        <div class="fg" style="max-width:130px">
+          <label>Périodes</label>
+          <input type="number" id="inp-proj-periods" placeholder="4" min="1" />
+        </div>
+        <button class="btn-add" id="btn-add-project" onclick="addProject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div class="proj-summary">
+        <div class="stat"><div class="stat-val" id="p-total">0</div><div class="stat-lbl">Périodes totales</div></div>
+        <div class="stat"><div class="stat-val green" id="p-valid">0</div><div class="stat-lbl">Périodes validées</div></div>
+        <div class="stat"><div class="stat-val" id="p-pct">0%</div><div class="stat-lbl">Taux de réussite</div></div>
+      </div>
+      <div class="prog-track"><div class="prog-fill pf-r" id="p-bar" style="width:0%"></div></div>
+      <div class="prog-labels"><span id="p-status">—</span><span>Seuil : 80%</span></div>
+      <div id="p-msg"></div>
+      <div class="proj-list" id="projects-list"><div class="empty-state">Aucun projet pour cette année</div></div>
+    </div>
+  </main>
+
+  <footer style="text-align:center;padding:24px 20px;font-size:.78rem;color:var(--tx3);border-top:1px solid var(--glass-border);margin-top:8px">
+    © 2026 Benjamin Rossetti — <a href="mailto:benjamin.rossetti08@gmail.com" style="color:var(--acc);text-decoration:none">benjamin.rossetti08@gmail.com</a>
+  </footer>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// Theme
+// ════════════════════════════════════════════════════════════
+const SUN_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+function applyTheme(mode) {
+  const btn = document.getElementById('btn-theme');
+  if (mode === 'light') {
+    document.documentElement.classList.add('light');
+    if (btn) { btn.innerHTML = MOON_SVG; btn.title = 'Passer en mode sombre'; }
+  } else {
+    document.documentElement.classList.remove('light');
+    if (btn) { btn.innerHTML = SUN_SVG;  btn.title = 'Passer en mode clair'; }
+  }
+}
+
+function toggleBurger() {
+  document.getElementById('header-menu').classList.toggle('open');
+  document.getElementById('btn-burger').classList.toggle('open');
+}
+function closeBurger() {
+  document.getElementById('header-menu').classList.remove('open');
+  document.getElementById('btn-burger').classList.remove('open');
+}
+
+function toggleTheme() {
+  const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+  localStorage.setItem('theme', next);
+  applyTheme(next);
+}
+
+// ════════════════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════════════════
+const S = {
+  token:    localStorage.getItem('token') || '',
+  user:     localStorage.getItem('username') || '',
+  year:     1,
+  trimester:1,
+  subjects: [],
+  details:  {},
+  projects: [],
+  expanded: null,
+  cg:        [],
+  cgExpanded: null,
+  search:   '',
+};
+
+// ════════════════════════════════════════════════════════════
+// API helpers
+// ════════════════════════════════════════════════════════════
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Erreur serveur');
+  return data;
+}
+const GET    = p       => api('GET',    p);
+const POST   = (p, b)  => api('POST',   p, b);
+const PATCH  = (p, b)  => api('PATCH',  p, b);
+const DELETE = p       => api('DELETE', p);
+
+// ════════════════════════════════════════════════════════════
+// Auth
+// ════════════════════════════════════════════════════════════
+let isRegister = false;
+
+function toggleAuthMode() {
+  isRegister = !isRegister;
+  document.getElementById('auth-title').textContent     = isRegister ? 'Inscription' : 'Connexion';
+  document.getElementById('auth-sub').textContent       = isRegister ? 'Créez votre compte' : 'Accédez à vos notes';
+  document.getElementById('auth-btn-text').textContent  = isRegister ? 'S\'inscrire' : 'Se connecter';
+  document.getElementById('auth-switch-text').textContent = isRegister ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+  document.getElementById('auth-switch-link').textContent = isRegister ? 'Se connecter' : 'S\'inscrire';
+  document.getElementById('field-email').style.display = isRegister ? '' : 'none';
+  showAuthErr('');
+}
+
+function showAuthErr(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+  if (msg) showToast(msg, 'error');
+}
+
+let _activeToast = null;
+let _activeToastTimer = null;
+function showToast(msg, type = 'success', duration = 4000) {
+  if (_activeToast) {
+    clearTimeout(_activeToastTimer);
+    try { _activeToast.remove(); } catch(e){}
+    _activeToast = null;
+  }
+  const color  = type === 'success' ? '#34d399' : '#fb7185';
+  const border = type === 'success' ? 'rgba(52,211,153,.5)' : 'rgba(251,113,133,.5)';
+  const icon   = type === 'success' ? '✓' : '✕';
+  const el = document.createElement('div');
+  el.setAttribute('style',
+    'position:fixed;bottom:24px;right:24px;z-index:99999;' +
+    'background:rgba(10,10,26,0.98);' +
+    'border:1px solid ' + border + ';' +
+    'border-radius:14px;padding:14px 20px;' +
+    'display:flex;align-items:center;gap:12px;' +
+    'max-width:320px;min-width:200px;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,0.8);' +
+    'font-size:14px;font-family:sans-serif;' +
+    'color:#f1f5f9;font-weight:500;' +
+    'line-height:1.4;' +
+    'animation:toastIn .3s ease both;'
+  );
+  el.innerHTML = '<span style="color:' + color + ';font-size:16px;flex-shrink:0">' + icon + '</span>' +
+                 '<span>' + msg + '</span>';
+  document.body.appendChild(el);
+  document.getElementById('scroll-top')?.classList.add('toast-push');
+  _activeToast = el;
+  _activeToastTimer = setTimeout(() => {
+    try { el.remove(); } catch(e){}
+    _activeToast = null;
+    document.getElementById('scroll-top')?.classList.remove('toast-push');
+  }, duration);
+}
+
+
+async function submitAuth() {
+  const username = document.getElementById('inp-username').value.trim();
+  const password = document.getElementById('inp-password').value;
+  const email    = document.getElementById('inp-email').value.trim();
+
+  if (!username)                         return showAuthErr('Le nom d\'utilisateur est requis');
+  if (!password)                         return showAuthErr('Le mot de passe est requis');
+  if (isRegister && password.length < 6) return showAuthErr('Le mot de passe doit contenir au moins 6 caractères');
+  if (isRegister && !email)             return showAuthErr('L\'adresse email est requise');
+  if (isRegister && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                                         return showAuthErr('Adresse email invalide');
+  showAuthErr('');
+
+  try {
+    const endpoint = isRegister ? '/api/register' : '/api/login';
+    const body     = isRegister ? { username, email, password } : { username, password };
+    const data = await api('POST', endpoint, body);
+    S.token = data.token;
+    S.user  = data.username;
+    localStorage.setItem('token',    S.token);
+    localStorage.setItem('username', S.user);
+    const welcome = isRegister
+      ? `Compte créé ! Bienvenue, ${data.username} 🎉`
+      : `Bon retour, ${data.username} !`;
+    showApp();
+    setTimeout(() => showToast(welcome, 'success'), 350);
+  } catch (e) {
+    showAuthErr(e.message);
+  }
+}
+
+function logout() {
+  S.token = ''; S.user = '';
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  document.getElementById('app').style.display          = 'none';
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+
+// ════════════════════════════════════════════════════════════
+// App boot
+// ════════════════════════════════════════════════════════════
+function showApp() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display          = 'flex';
+  document.getElementById('user-badge').textContent = S.user;
+  document.getElementById('welcome-label').textContent = `Bienvenue, ${S.user} ✦ Formation 4 ans`;
+  loadAll();
+}
+
+async function loadAll() {
+  const qs = `?year=${S.year}&trimester=${S.trimester}`;
+  try {
+    [S.subjects, S.projects] = await Promise.all([
+      GET(`/api/subjects${qs}`),
+      GET(`/api/projects${qs}`),
+    ]);
+    S.details = {};
+    await Promise.all(S.subjects.map(s => loadSubjectDetail(s.id)));
+    renderSubjects();
+    renderProjects();
+  } catch (e) {
+    if (e.message.includes('authentifi') || e.message.includes('Token')) logout();
+  }
+  try {
+    const raw = await GET(`/api/cg?year=${S.year}`);
+    S.cg = Array.isArray(raw) ? raw : [];
+  } catch { S.cg = []; }
+  renderCG();
+}
+
+async function loadSubjectDetail(id) {
+  try {
+    S.details[id] = await GET(`/api/subjects/${id}/detail`);
+  } catch {
+    S.details[id] = { grades: [], futures: [] };
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Filters
+// ════════════════════════════════════════════════════════════
+function onFilterChange() {
+  S.year      = +document.getElementById('sel-year').value;
+  S.trimester = +document.getElementById('sel-trim').value;
+  S.expanded  = null;
+  S.search    = '';
+  document.getElementById('search-inp').value = '';
+  closeBurger();
+  loadAll();
+}
+
+function onSearch() {
+  S.search = document.getElementById('search-inp').value.trim().toLowerCase();
+  renderSubjects();
+  renderCG();
+}
+
+// ════════════════════════════════════════════════════════════
+// Grade math
+// ════════════════════════════════════════════════════════════
+function calcSubject(grades, futures, target = 4.0) {
+  const curSum = grades.reduce((s, g) => s + g.value * g.weight, 0);
+  const curW   = grades.reduce((s, g) => s + g.weight, 0);
+  const futW   = futures.reduce((s, f) => s + f.weight, 0);
+  const totalW = curW + futW;
+
+  const avg = curW > 0 ? curSum / curW : null;
+
+  if (futW === 0) {
+    if (curW === 0) return { avg: null, minGrade: null, status: 'none', totalW: 0 };
+    return { avg, minGrade: null, status: avg >= 4 ? 'passed' : 'failed', totalW };
+  }
+
+  const minGrade = (target * totalW - curSum) / futW;
+  const status   = minGrade <= 1 ? 'assured' : minGrade > 6 ? 'impossible' : 'possible';
+  return { avg, minGrade, status, totalW, curW, futW };
+}
+
+// ════════════════════════════════════════════════════════════
+// Subjects render
+// ════════════════════════════════════════════════════════════
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function renderSubjects() {
+  const el = document.getElementById('subjects-container');
+  const list = S.search
+    ? S.subjects.filter(s => s.name.toLowerCase().includes(S.search))
+    : S.subjects;
+  if (!S.subjects.length) {
+    el.innerHTML = '<div class="empty-state">Aucune matière — ajoutez-en une ci-dessus</div>';
+  } else if (!list.length) {
+    el.innerHTML = `<div class="empty-state">Aucune matière ne correspond à "<strong>${esc(S.search)}</strong>"</div>`;
+  } else {
+    el.innerHTML = list.map(s => renderSubjectCard(s)).join('');
+  }
+  renderDashboard();
+}
+
+function renderSubjectCard(s) {
+  const d       = S.details[s.id] || { grades: [], futures: [] };
+  const target  = s.target || 4.0;
+  const calc    = calcSubject(d.grades, d.futures, target);
+  const isOpen  = S.expanded === s.id;
+
+  let avgTxt = '—', avgCls = '', badgeTxt = 'Aucune note', badgeCls = 'badge-n';
+  if (calc.avg !== null) {
+    avgTxt = calc.avg.toFixed(2);
+    if      (calc.avg >= 4)   { avgCls = 'green';  badgeTxt = 'Réussi';       badgeCls = 'badge-g'; }
+    else if (calc.avg >= 3.5) { avgCls = 'orange'; badgeTxt = 'Limite';       badgeCls = 'badge-o'; }
+    else                      { avgCls = 'red';    badgeTxt = 'Insuffisant';  badgeCls = 'badge-r'; }
+  }
+
+  const body = isOpen ? renderSubjectBody(s.id, d, calc, target) : '';
+
+  return `<div class="subject-card" id="sc-${s.id}">
+    <div class="subject-header" onclick="toggleSubject(${s.id})">
+      <span class="subject-name" id="sname-${s.id}">${esc(s.name)}</span>
+      <span class="subject-avg ${avgCls}">${avgTxt}</span>
+      <span class="subject-badge ${badgeCls}">${badgeTxt}</span>
+      <button class="btn-edit" onclick="event.stopPropagation();startEditSubject(${s.id})" title="Renommer">✎</button>
+      <button class="btn-del-sub" onclick="event.stopPropagation();deleteSubject(${s.id})" title="Supprimer">🗑</button>
+      <span class="chevron ${isOpen ? 'open' : ''}">▼</span>
+    </div>
+    <div class="subject-body ${isOpen ? 'open' : ''}" id="sb-${s.id}">${body}</div>
+  </div>`;
+}
+
+function renderSubjectBody(sid, d, calc, target = 4.0) {
+  const totalW = (d.grades.reduce((s,g)=>s+g.weight,0) + d.futures.reduce((s,f)=>s+f.weight,0));
+  const warnCls = Math.abs(totalW - 100) < 0.01 ? 'ww-ok' : 'ww-err';
+  const warnTxt = Math.abs(totalW - 100) < 0.01
+    ? '✓ Poids total : 100%'
+    : `⚠ Poids total : ${totalW.toFixed(1)}% (doit être 100%)`;
+
+  const gradeRows = d.grades.length
+    ? d.grades.map(g => {
+        const c   = g.value >= 4 ? 'green' : g.value >= 3.5 ? 'orange' : 'red';
+        const cmt = g.comment || '';
+        const cmtHtml = `<span id="gcmt-${sid}-${g.id}" data-comment="${esc(cmt)}"
+          class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+          onclick="editCommentInline('gcmt-${sid}-${g.id}','grade',${g.id},${sid})"
+          >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+        return `<div class="mini-item" id="gitem-${sid}-${g.id}">
+          <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(g.name)}${cmtHtml}</span>
+          <span class="mi-weight">${g.weight}%</span>
+          <span class="mi-grade ${c}">${g.value.toFixed(1)}</span>
+          <button class="btn-edit" onclick="startEditGrade(${sid},${g.id})" title="Modifier">✎</button>
+          <button class="btn-x" onclick="deleteGrade(${sid},${g.id})">✕</button>
+        </div>`;
+      }).join('')
+    : '<div class="empty-mini">Aucune note</div>';
+
+  const futureRows = d.futures.length
+    ? d.futures.map(f => `<div class="mini-item" id="fitem-${sid}-${f.id}">
+        <span class="mi-name">${esc(f.name)}</span>
+        <span class="mi-weight">${f.weight}%</span>
+        <button class="btn-edit" onclick="startEditFuture(${sid},${f.id})" title="Modifier">✎</button>
+        <button class="btn-x" onclick="deleteFuture(${sid},${f.id})">✕</button>
+      </div>`).join('')
+    : '<div class="empty-mini">Aucun test planifié</div>';
+
+  const pct    = calc.avg !== null ? Math.min(calc.avg / target * 100, 100) : 0;
+  const barCls = calc.avg === null ? 'bar-r' : calc.avg >= target ? 'bar-g' : calc.avg >= target - 0.5 ? 'bar-o' : 'bar-r';
+  const objRow = `<div class="obj-row">
+    <span class="obj-label">🎯 Objectif</span>
+    <input type="number" class="obj-inp" value="${target}" min="1" max="6" step="0.5"
+      onchange="setSubjectTarget(${sid},+this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()" />
+    <div class="obj-bar-wrap"><div class="obj-bar-fill ${barCls}" style="width:${pct.toFixed(1)}%"></div></div>
+    <span class="obj-info">${calc.avg !== null ? calc.avg.toFixed(2) : '—'} / <strong>${target}</strong></span>
+  </div>`;
+
+  const minBox = renderMinGradeBox(calc, d, target);
+
+  return `
+  <div class="weight-warn ${warnCls}">${warnTxt}</div>
+  ${objRow}
+  <div class="sub-sections" style="margin-top:12px">
+    <div>
+      <div class="sub-sec-title">Notes obtenues</div>
+      <div class="mini-list">${gradeRows}</div>
+      <div class="mini-add">
+        <input type="text"   placeholder="Nom du test"  id="gn-${sid}" />
+        <input type="number" placeholder="Note (1-6)"   id="gv-${sid}" min="1" max="6" step="0.5" style="max-width:90px" />
+        <input type="number" placeholder="Poids %"      id="gw-${sid}" min="1" max="100" style="max-width:75px" />
+        <button class="btn-mini" onclick="addGrade(${sid})">Note<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+    </div>
+    <div>
+      <div class="sub-sec-title">Tests à venir</div>
+      <div class="mini-list">${futureRows}</div>
+      <div class="mini-add">
+        <input type="text"   placeholder="Nom du test" id="fn-${sid}" />
+        <input type="number" placeholder="Poids %"     id="fw-${sid}" min="1" max="100" style="max-width:80px" />
+        <button class="btn-mini" onclick="addFuture(${sid})">Test<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+    </div>
+    ${minBox}
+  </div>`;
+}
+
+function renderMinGradeBox(calc, d, target = 4.0) {
+  if (calc.status === 'none') return '';
+
+  if (calc.status === 'passed' && calc.minGrade === null) {
+    return `<div class="min-grade-box mgb-green" style="grid-column:1/-1">
+      <div class="mgb-label">Résultat final</div>
+      <div class="mgb-value">✓</div>
+      <div class="mgb-sub">Moyenne : ${calc.avg.toFixed(2)} — Réussi !${calc.avg >= target ? ` Objectif ${target} atteint ✓` : ` (objectif ${target} non atteint)`}</div>
+    </div>`;
+  }
+  if (calc.status === 'failed' && calc.minGrade === null) {
+    return `<div class="min-grade-box mgb-red" style="grid-column:1/-1">
+      <div class="mgb-label">Résultat final</div>
+      <div class="mgb-value">✗</div>
+      <div class="mgb-sub">Moyenne : ${calc.avg.toFixed(2)} — Insuffisant, plus de tests disponibles</div>
+    </div>`;
+  }
+  if (calc.status === 'assured') {
+    return `<div class="min-grade-box mgb-green" style="grid-column:1/-1">
+      <div class="mgb-label">Note minimale pour atteindre ${target}</div>
+      <div class="mgb-value">Assurée ✓</div>
+      <div class="mgb-sub">Même avec 1.0 partout, l'objectif ${target} est atteint${calc.avg !== null ? ` (moy. actuelle : ${calc.avg.toFixed(2)})` : ''}</div>
+    </div>`;
+  }
+  if (calc.status === 'impossible') {
+    return `<div class="min-grade-box mgb-red" style="grid-column:1/-1">
+      <div class="mgb-label">Note minimale pour atteindre ${target}</div>
+      <div class="mgb-value">Objectif hors de portée</div>
+      <div class="mgb-sub">Note requise &gt; 6.0${calc.avg !== null ? ` (moy. actuelle : ${calc.avg.toFixed(2)})` : ''}</div>
+    </div>`;
+  }
+
+  const mg  = calc.minGrade;
+  const mgR = Math.ceil(mg * 2) / 2;
+  const cls = mgR >= 5.5 ? 'mgb-red' : mgR >= 4.5 ? 'mgb-orange' : 'mgb-green';
+  const diff = mgR >= 5.5 ? 'Difficile' : mgR >= 4.5 ? 'Faisable' : 'Accessible';
+  return `<div class="min-grade-box ${cls}" style="grid-column:1/-1">
+    <div class="mgb-label">Note minimale pour atteindre l'objectif ${target}</div>
+    <div class="mgb-value">${mgR % 1 === 0 ? mgR.toFixed(1) : mgR}</div>
+    <div class="mgb-sub">${diff}${calc.avg !== null ? ` — Moy. actuelle : ${calc.avg.toFixed(2)}` : ''}</div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// Subject actions
+// ════════════════════════════════════════════════════════════
+function toggleAddSubject() {
+  const row = document.getElementById('add-subject-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-subj-name').focus();
+}
+
+async function addSubject() {
+  const name = document.getElementById('inp-subj-name').value.trim();
+  if (!name) return showToast('Entrez un nom de matière', 'error');
+  try {
+    const s = await POST('/api/subjects', { name, year: S.year, trimester: S.trimester });
+    S.subjects.push(s);
+    S.details[s.id] = { grades: [], futures: [] };
+    document.getElementById('inp-subj-name').value = '';
+    document.getElementById('add-subject-row').style.display = 'none';
+    renderSubjects();
+    showToast(`Matière "${name}" ajoutée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteSubject(id) {
+  if (!confirm('Supprimer cette matière et toutes ses notes ?')) return;
+  try {
+    const name = S.subjects.find(s => s.id === id)?.name;
+    await DELETE(`/api/subjects/${id}`);
+    S.subjects = S.subjects.filter(s => s.id !== id);
+    delete S.details[id];
+    if (S.expanded === id) S.expanded = null;
+    renderSubjects();
+    showToast(`Matière "${name}" supprimée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function toggleSubject(id) {
+  S.expanded = S.expanded === id ? null : id;
+  renderSubjects();
+}
+
+// ════════════════════════════════════════════════════════════
+// Grade actions
+// ════════════════════════════════════════════════════════════
+async function addGrade(sid) {
+  const name   = document.getElementById(`gn-${sid}`).value.trim();
+  const value  = parseFloat(document.getElementById(`gv-${sid}`).value);
+  const weight = parseFloat(document.getElementById(`gw-${sid}`).value);
+  if (!name)                           return showToast('Entrez un nom', 'error');
+  if (isNaN(value)||value<1||value>6)  return showToast('Note invalide (1–6)', 'error');
+  if (isNaN(weight)||weight<=0)        return showToast('Poids % invalide', 'error');
+  try {
+    const g = await POST(`/api/subjects/${sid}/grades`, { name, value, weight });
+    S.details[sid].grades.push(g);
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" ajoutée (${value})`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteGrade(sid, gid) {
+  const name = S.details[sid]?.grades.find(g => g.id === gid)?.name;
+  if (!confirm(`Supprimer la note "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/grades/${gid}`);
+    S.details[sid].grades = S.details[sid].grades.filter(g => g.id !== gid);
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" supprimée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Future test actions
+// ════════════════════════════════════════════════════════════
+async function addFuture(sid) {
+  const name   = document.getElementById(`fn-${sid}`).value.trim();
+  const weight = parseFloat(document.getElementById(`fw-${sid}`).value);
+  if (!name)                    return showToast('Entrez un nom', 'error');
+  if (isNaN(weight)||weight<=0) return showToast('Poids % invalide', 'error');
+  try {
+    const f = await POST(`/api/subjects/${sid}/future`, { name, weight });
+    S.details[sid].futures.push(f);
+    renderSubjectInPlace(sid);
+    showToast(`Test à venir "${name}" ajouté`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteFuture(sid, fid) {
+  const name = S.details[sid]?.futures.find(f => f.id === fid)?.name;
+  if (!confirm(`Supprimer le test à venir "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/future/${fid}`);
+    S.details[sid].futures = S.details[sid].futures.filter(f => f.id !== fid);
+    renderSubjectInPlace(sid);
+    showToast(`Test "${name}" supprimé`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderSubjectInPlace(sid) {
+  const s = S.subjects.find(s => s.id === sid);
+  if (!s) return;
+  const card = document.getElementById(`sc-${sid}`);
+  if (card) card.outerHTML = renderSubjectCard(s);
+  renderDashboard();
+}
+
+// ════════════════════════════════════════════════════════════
+// Projects
+// ════════════════════════════════════════════════════════════
+function toggleAddProject() {
+  const row = document.getElementById('add-project-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-proj-name').focus();
+}
+
+async function addProject() {
+  const name    = document.getElementById('inp-proj-name').value.trim();
+  const periods = parseInt(document.getElementById('inp-proj-periods').value, 10);
+  if (!name)                         return showToast('Entrez un nom de projet', 'error');
+  if (isNaN(periods) || periods < 1) return showToast('Nombre de périodes invalide', 'error');
+  try {
+    const p = await POST('/api/projects', { name, periods, year: S.year, trimester: S.trimester });
+    S.projects.push(p);
+    document.getElementById('inp-proj-name').value    = '';
+    document.getElementById('inp-proj-periods').value = '';
+    document.getElementById('add-project-row').style.display = 'none';
+    renderProjects();
+    showToast(`Projet "${name}" ajouté`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function toggleProject(id) {
+  const p = S.projects.find(p => p.id === id);
+  if (!p) return;
+  try {
+    await PATCH(`/api/projects/${id}`, { success: !p.success });
+    p.success = p.success ? 0 : 1;
+    renderProjects();
+    showToast(p.success ? `"${p.name}" marqué réussi` : `"${p.name}" marqué échoué`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteProject(id) {
+  const name = S.projects.find(p => p.id === id)?.name;
+  if (!confirm(`Supprimer le projet "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/projects/${id}`);
+    S.projects = S.projects.filter(p => p.id !== id);
+    renderProjects();
+    showToast(`Projet "${name}" supprimé`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderProjects() {
+  const list = document.getElementById('projects-list');
+  const total     = S.projects.reduce((s, p) => s + p.periods, 0);
+  const validated = S.projects.filter(p => p.success).reduce((s, p) => s + p.periods, 0);
+  const pct       = total > 0 ? (validated / total) * 100 : 0;
+  const tier      = pct >= 80 ? 'g' : pct >= 60 ? 'o' : 'r';
+
+  document.getElementById('p-total').textContent = total;
+  document.getElementById('p-valid').textContent = validated;
+  document.getElementById('p-pct').textContent   = pct.toFixed(1) + '%';
+  document.getElementById('p-pct').className     = `stat-val ${pct>=80?'green':pct>=60?'orange':'red'}`;
+  document.getElementById('p-bar').style.width   = Math.min(pct, 100) + '%';
+  document.getElementById('p-bar').className     = `prog-fill pf-${tier}`;
+
+  const msgEl = document.getElementById('p-msg');
+  if (pct >= 80) {
+    document.getElementById('p-status').innerHTML = `<span class="green">✓ Objectif atteint (${pct.toFixed(1)}%)</span>`;
+    msgEl.innerHTML = `<div class="proj-msg badge-g" style="margin-bottom:12px">✓ Tu passes — périodes validées suffisantes !</div>`;
+  } else if (total > 0) {
+    const miss = Math.ceil(total * 0.8) - validated;
+    document.getElementById('p-status').innerHTML = `<span class="red">✗ Insuffisant (${pct.toFixed(1)}%)</span>`;
+    msgEl.innerHTML = `<div class="proj-msg badge-r" style="margin-bottom:12px">✗ Il manque encore <strong>${miss}</strong> période(s) validée(s) pour atteindre 80%</div>`;
+  } else {
+    document.getElementById('p-status').textContent = '—';
+    msgEl.innerHTML = '';
+  }
+
+  if (!S.projects.length) {
+    list.innerHTML = '<div class="empty-state">Aucun projet pour cette année</div>';
+    renderDashboard();
+    return;
+  }
+
+  list.innerHTML = S.projects.map(p => `
+    <div class="proj-item" id="pitem-${p.id}">
+      <span class="proj-name">${esc(p.name)}</span>
+      <span class="proj-periods">${p.periods} période(s)</span>
+      <div class="toggle-wrap">
+        <span class="tgl-lbl ${p.success ? 'green' : 'red'}">${p.success ? 'Réussi' : 'Échoué'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${p.success ? 'checked' : ''} onchange="toggleProject(${p.id})">
+          <span class="tgl-s"></span>
+        </label>
+      </div>
+      <button class="btn-edit" onclick="startEditProject(${p.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteProject(${p.id})">✕</button>
+    </div>`).join('');
+  renderDashboard();
+}
+
+// ════════════════════════════════════════════════════════════
+// Export / Import JSON
+// ════════════════════════════════════════════════════════════
+async function exportJSON() {
+  try {
+    const r = await fetch('/api/export/json', { headers: { Authorization: 'Bearer ' + S.token } });
+    if (!r.ok) throw new Error();
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `notes_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Données exportées en JSON', 'success');
+  } catch {
+    showToast('Erreur lors de l\'export', 'error');
+  }
+}
+
+function triggerImport() {
+  document.getElementById('import-file-input').click();
+}
+
+async function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+
+  const ok = confirm('⚠️ Attention — ceci remplacera TOUTES tes données actuelles (matières, notes, CG, projets).\n\nContinuer ?');
+  if (!ok) return;
+
+  try {
+    const data = JSON.parse(await file.text());
+    const r = await fetch('/api/import/json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + S.token },
+      body: JSON.stringify(data)
+    });
+    const res = await r.json();
+    if (!r.ok) throw new Error(res.error);
+    showToast('Données importées avec succès', 'success');
+    loadAll();
+  } catch (err) {
+    showToast('Erreur : ' + err.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Export PDF
+// ════════════════════════════════════════════════════════════
+async function exportPDF() {
+  const btn = document.querySelector('.btn-export-pdf');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg> Génération…`;
+
+  const params = new URLSearchParams();
+  if (S.year)      params.set('year',      S.year);
+  if (S.trimester) params.set('trimester', S.trimester);
+
+  try {
+    const r = await fetch(`/api/export/pdf?${params}`, { headers: { Authorization: 'Bearer ' + S.token } });
+    if (!r.ok) throw new Error('Erreur serveur');
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `notes_${S.year || 'all'}_T${S.trimester || 'all'}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('PDF exporté avec succès', 'success');
+  } catch (e) {
+    showToast('Erreur lors de l\'export PDF', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Dashboard
+// ════════════════════════════════════════════════════════════
+function renderDashboard() {
+  // 1. Moyenne des matières (moyenne des moyennes pondérées)
+  const subjectAvgs = S.subjects.map(s => {
+    const d = S.details[s.id] || { grades: [], futures: [] };
+    return calcSubject(d.grades, d.futures).avg;
+  }).filter(v => v !== null);
+  const globalSubj = subjectAvgs.length
+    ? subjectAvgs.reduce((a,b)=>a+b,0)/subjectAvgs.length : null;
+
+  // 2. Moyennes CG globales
+  const cgAvgsList = S.cg.map(s => cgSubjectAvgs(s));
+  const mean = arr => { const f=arr.filter(v=>v!==null); return f.length?f.reduce((a,b)=>a+b,0)/f.length:null; };
+  const cgS1 = mean(cgAvgsList.map(a=>a.s1Avg));
+  const cgS2 = mean(cgAvgsList.map(a=>a.s2Avg));
+
+  // 3. Projets
+  const totPer = S.projects.reduce((s,p)=>s+p.periods,0);
+  const valPer = S.projects.filter(p=>p.success).reduce((s,p)=>s+p.periods,0);
+  const projPct = totPer>0 ? valPer/totPer*100 : null;
+
+  // Helpers
+  const fmt    = v => v!==null ? v.toFixed(2) : '—';
+  const fmtPct = v => v!==null ? v.toFixed(1)+'%' : '—';
+  const vCls   = v => v===null?'':v>=4?'green':v>=3.5?'orange':'red';
+  const dCls   = v => v===null?'ds-neutral':v>=4?'ds-green':v>=3.5?'ds-orange':'ds-red';
+  const pCls   = v => v===null?'ds-neutral':v>=80?'ds-green':v>=60?'ds-orange':'ds-red';
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="dash-stat ${dCls(globalSubj)}">
+      <div class="dash-label">Moyenne Matières</div>
+      <div class="dash-value ${vCls(globalSubj)}">${fmt(globalSubj)}</div>
+      <div class="dash-sub">${subjectAvgs.length} matière(s) avec notes</div>
+    </div>
+    <div class="dash-stat ${dCls(cgS1)}">
+      <div class="dash-label">CG · Semestre 1</div>
+      <div class="dash-value ${vCls(cgS1)}">${fmt(cgS1)}</div>
+      <div class="dash-sub">Culture Générale</div>
+    </div>
+    <div class="dash-stat ${dCls(cgS2)}">
+      <div class="dash-label">CG · Semestre 2</div>
+      <div class="dash-value ${vCls(cgS2)}">${fmt(cgS2)}</div>
+      <div class="dash-sub">Culture Générale</div>
+    </div>
+    <div class="dash-stat ${pCls(projPct)}">
+      <div class="dash-label">Projets périodes</div>
+      <div class="dash-value ${projPct===null?'':projPct>=80?'green':projPct>=60?'orange':'red'}">${fmtPct(projPct)}</div>
+      <div class="dash-sub">${valPer} / ${totPer} périodes validées</div>
+    </div>`;
+
+  // Indicateur global
+  const issues = [];
+  if (globalSubj!==null && globalSubj<4)  issues.push(`Matières : ${fmt(globalSubj)}`);
+  if (cgS1!==null && cgS1<4)              issues.push(`CG S1 : ${fmt(cgS1)}`);
+  if (cgS2!==null && cgS2<4)              issues.push(`CG S2 : ${fmt(cgS2)}`);
+  if (projPct!==null && projPct<80)       issues.push(`Projets : ${fmtPct(projPct)}`);
+
+  const hasData = globalSubj!==null || cgS1!==null || cgS2!==null || projPct!==null;
+  let html;
+  if (!hasData) {
+    html = `<div class="dash-status-box ds-box-empty">
+      <span class="dash-status-icon">📋</span>
+      <div><div class="dash-status-main" style="color:var(--tx2)">Aucune donnée</div>
+      <div style="font-size:.82rem;color:var(--tx3)">Ajoute des notes, des tests CG ou des projets pour voir ton statut.</div></div>
+    </div>`;
+  } else if (issues.length === 0) {
+    html = `<div class="dash-status-box ds-box-ok">
+      <span class="dash-status-icon">✅</span>
+      <div><div class="dash-status-main green">Tu passes !</div>
+      <div style="font-size:.82rem;color:var(--tx2)">Toutes les moyennes ≥ 4.0 et les projets atteignent 80%.</div></div>
+    </div>`;
+  } else {
+    html = `<div class="dash-status-box ds-box-warn">
+      <span class="dash-status-icon">⚠️</span>
+      <div><div class="dash-status-main red">Attention — en dessous du seuil</div>
+      <div class="dash-status-issues">${issues.map(i=>`<span class="dash-issue-tag">${i}</span>`).join('')}</div></div>
+    </div>`;
+  }
+  document.getElementById('dash-status').innerHTML = html;
+
+  // ── Gamification ──────────────────────────────────────────────
+  const allAvgs = [...subjectAvgs, cgS1, cgS2].filter(v => v !== null);
+
+  // Badges
+  const badges = [];
+  if (allAvgs.length > 0) {
+    if (allAvgs.every(v => v >= 5.0))            badges.push({icon:'🔥', label:'En feu',           cls:'badge-fire'});
+    else if (allAvgs.every(v => v >= 4.0))        badges.push({icon:'⭐', label:'Sur la bonne voie', cls:'badge-star'});
+    if (allAvgs.some(v => v >= 3.5 && v < 4.0))  badges.push({icon:'⚠️', label:'Attention',         cls:'badge-warn'});
+    if (allAvgs.some(v => v < 3.5))               badges.push({icon:'🚨', label:'En danger',         cls:'badge-danger'});
+  }
+  if (projPct !== null && projPct >= 80)           badges.push({icon:'🏆', label:'Projet validé',    cls:'badge-trophy'});
+  const cgAvgsForBadge = [cgS1, cgS2].filter(v => v !== null);
+  if (cgAvgsForBadge.length > 0 && cgAvgsForBadge.every(v => v >= 4.0))
+                                                   badges.push({icon:'🎓', label:'CG réussie',       cls:'badge-grad'});
+
+  // Global progress %
+  const allNorm = [];
+  if (subjectAvgs.length) allNorm.push((subjectAvgs.reduce((a,b)=>a+b,0)/subjectAvgs.length - 1)/5*100);
+  if (cgS1 !== null)      allNorm.push((cgS1 - 1)/5*100);
+  if (cgS2 !== null)      allNorm.push((cgS2 - 1)/5*100);
+  if (projPct !== null)   allNorm.push(projPct);
+  const globalPct = allNorm.length ? Math.round(allNorm.reduce((a,b)=>a+b,0)/allNorm.length) : 0;
+  const fillCls = globalPct >= 80 ? 'bar-g' : globalPct >= 60 ? 'bar-o' : 'bar-r';
+
+  document.getElementById('dash-progress').innerHTML = `
+    <div class="gp-section">
+      <div class="gp-header">
+        <span class="gp-label">Niveau scolaire global</span>
+        <span class="gp-pct">${allNorm.length ? globalPct+'%' : '—'}</span>
+      </div>
+      <div class="gp-bar"><div class="gp-fill ${fillCls}" style="width:${globalPct}%"></div></div>
+    </div>`;
+
+  document.getElementById('dash-badges').innerHTML = badges.length
+    ? `<div class="badges-row">${badges.map(b=>`<div class="badge ${b.cls}"><span>${b.icon}</span>${b.label}</div>`).join('')}</div>`
+    : '';
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — calcul
+// ════════════════════════════════════════════════════════════
+function cgGrade(t) { return (t.points_obtained / t.points_total) * 5 + 1; }
+
+function calcCGSem(tests, petitsTests, futures, targetAvg = 4.0) {
+  const grades       = tests.map(cgGrade);
+  const petitsGrades = petitsTests.map(cgGrade);
+  const petitsAvg    = petitsGrades.length ? petitsGrades.reduce((a,b)=>a+b,0)/petitsGrades.length : null;
+
+  const curSum = grades.reduce((a,b)=>a+b,0) + (petitsAvg !== null ? petitsAvg : 0);
+  const curN   = grades.length + (petitsAvg !== null ? 1 : 0);
+  const n      = curN + futures.length;
+
+  const semAvg   = curN > 0 ? curSum / curN : null;
+  const minGrade = futures.length > 0 ? (targetAvg * n - curSum) / futures.length : null;
+  return { semAvg, minGrade, petitsAvg };
+}
+
+function fmtMinGrade(mg) {
+  if (mg === null) return null;
+  if (mg <= 1) return { label: 'Assurée ✓', cls: 'green' };
+  if (mg > 6)  return { label: 'Impossible ✗', cls: 'red' };
+  const mgR = Math.ceil(mg * 2) / 2;
+  const cls = mgR >= 5.5 ? 'red' : mgR >= 4.5 ? 'orange' : 'green';
+  const lbl = mgR % 1 === 0 ? mgR.toFixed(1) : String(mgR);
+  return { label: `Note min : ${lbl}`, cls };
+}
+
+function cgSubjectAvgs(s) {
+  const pt = s.petits_tests || [];
+  const s1 = calcCGSem(s.tests.filter(t => +t.semester === 1), pt.filter(t => +t.semester === 1), []);
+  const s2 = calcCGSem(s.tests.filter(t => +t.semester === 2), pt.filter(t => +t.semester === 2), []);
+  const ann = s1.semAvg !== null && s2.semAvg !== null ? (s1.semAvg + s2.semAvg) / 2 : null;
+  return { s1Avg: s1.semAvg, s2Avg: s2.semAvg, annAvg: ann };
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — rendu
+// ════════════════════════════════════════════════════════════
+function renderCG() {
+  const fmtAvg   = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls   = v => v === null ? '' : v >= 4 ? 'green' : 'red';
+  const passStat = v => v === null ? { txt:'—', cls:'' } : v >= 4 ? { txt:'✓ Réussi', cls:'green' } : { txt:'✗ Insuffisant', cls:'red' };
+
+  // Global indicators — average of all subjects' averages
+  const avgs = S.cg.map(s => cgSubjectAvgs(s));
+  const mean = arr => { const f = arr.filter(v => v !== null); return f.length ? f.reduce((a,b)=>a+b,0)/f.length : null; };
+  const gS1  = mean(avgs.map(a => a.s1Avg));
+  const gS2  = mean(avgs.map(a => a.s2Avg));
+  const gAnn = mean(avgs.map(a => a.annAvg));
+
+  ['s1','s2','yr'].forEach((k, i) => {
+    const v = [gS1, gS2, gAnn][i];
+    const st = passStat(v);
+    document.getElementById(`cg-${k}-avg`).textContent  = fmtAvg(v);
+    document.getElementById(`cg-${k}-avg`).className    = `cg-ind-val ${avgCls(v)}`;
+    document.getElementById(`cg-${k}-status`).textContent = st.txt;
+    document.getElementById(`cg-${k}-status`).className   = `cg-ind-status ${st.cls}`;
+  });
+
+  // Subject cards
+  const el = document.getElementById('cg-subjects-container');
+  const cgList = S.search
+    ? S.cg.filter(s => s.name.toLowerCase().includes(S.search))
+    : S.cg;
+  if (!S.cg.length) {
+    el.innerHTML = '<div class="empty-state">Aucune matière CG — ajoutez-en une ci-dessus</div>';
+    return;
+  } else if (!cgList.length) {
+    el.innerHTML = `<div class="empty-state">Aucune matière ne correspond à "<strong>${esc(S.search)}</strong>"</div>`;
+    return;
+  }
+  el.innerHTML = cgList.map(s => renderCGSubjectCard(s)).join('');
+  renderDashboard();
+}
+
+function renderCGSubjectCard(s) {
+  const { s1Avg, s2Avg, annAvg } = cgSubjectAvgs(s);
+  const isOpen  = S.cgExpanded === s.id;
+  const fmtAvg  = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls  = v => v === null ? '' : v >= 4 ? 'green' : v >= 3.5 ? 'orange' : 'red';
+  const annCls  = annAvg === null ? 'badge-n' : annAvg >= 4 ? 'badge-g' : annAvg >= 3.5 ? 'badge-o' : 'badge-r';
+  const annTxt  = annAvg === null ? 'Aucun test' : annAvg >= 4 ? 'Réussi' : annAvg >= 3.5 ? 'Limite' : 'Insuffisant';
+  const body    = isOpen ? renderCGSubjectBody(s) : '';
+
+  return `<div class="subject-card" id="cgsc-${s.id}">
+    <div class="subject-header" onclick="toggleCGSubject(${s.id})">
+      <span class="subject-name" id="cgname-${s.id}">${esc(s.name)}</span>
+      <span class="cg-sem-badge">S1 : <span class="${avgCls(s1Avg)}">${fmtAvg(s1Avg)}</span></span>
+      <span class="cg-sem-badge">S2 : <span class="${avgCls(s2Avg)}">${fmtAvg(s2Avg)}</span></span>
+      <span class="subject-badge ${annCls}">${annTxt}</span>
+      <button class="btn-edit" onclick="event.stopPropagation();startEditCGSubject(${s.id})" title="Renommer">✎</button>
+      <button class="btn-del-sub" onclick="event.stopPropagation();deleteCGSubject(${s.id})" title="Supprimer">🗑</button>
+      <span class="chevron ${isOpen ? 'open' : ''}">▼</span>
+    </div>
+    <div class="subject-body ${isOpen ? 'open' : ''}">${body}</div>
+  </div>`;
+}
+
+function renderCGSubjectBody(s) {
+  return `<div class="sub-sections">${renderCGSemCol(s,1)}${renderCGSemCol(s,2)}</div>`;
+}
+
+function renderCGSemCol(s, sem) {
+  const pt          = s.petits_tests || [];
+  const tests       = s.tests.filter(t => +t.semester === sem);
+  const petits      = pt.filter(t => +t.semester === sem);
+  const futures     = s.futures.filter(f => +f.semester === sem);
+  const otherTests  = s.tests.filter(t => +t.semester === (sem === 1 ? 2 : 1));
+  const otherPetits = pt.filter(t => +t.semester === (sem === 1 ? 2 : 1));
+
+  const semTarget = sem === 1 ? (s.target_s1 || 4.0) : (s.target_s2 || 4.0);
+  const { semAvg, minGrade, petitsAvg } = calcCGSem(tests, petits, futures, semTarget);
+  const { semAvg: otherAvg }            = calcCGSem(otherTests, otherPetits, []);
+  const minGradeYear = otherAvg !== null && futures.length
+    ? calcCGSem(tests, petits, futures, 8.0 - otherAvg).minGrade : null;
+
+  const fmtAvg = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls = v => v === null ? '' : v >= 4 ? 'green' : v >= 3.5 ? 'orange' : 'red';
+
+  const testRows = tests.map(t => {
+    const g = cgGrade(t); const gc = g >= 4 ? 'green' : g >= 3.5 ? 'orange' : 'red';
+    const cmt = t.comment || '';
+    const cmtHtml = `<span id="cgcmt-${s.id}-${t.id}" data-comment="${esc(cmt)}"
+      class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+      onclick="editCommentInline('cgcmt-${s.id}-${t.id}','cgtest',${t.id},${s.id})"
+      >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+    return `<div class="cg-test-item" id="cgitem-${s.id}-${t.id}">
+      <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(t.name)}${cmtHtml}</span>
+      <span class="cg-pts">${t.points_obtained}/${t.points_total}pts</span>
+      <span class="cg-grade ${gc}">${g.toFixed(2)}</span>
+      <button class="btn-edit" onclick="startEditCGTest(${s.id},${t.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGTest(${s.id},${t.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun test</div>';
+
+  const petitsRows = petits.map(t => {
+    const g = cgGrade(t); const gc = g >= 4 ? 'green' : g >= 3.5 ? 'orange' : 'red';
+    const cmt = t.comment || '';
+    const cmtHtml = `<span id="cgsmcmt-${s.id}-${t.id}" data-comment="${esc(cmt)}"
+      class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+      onclick="editCommentInline('cgsmcmt-${s.id}-${t.id}','cgsmall',${t.id},${s.id})"
+      >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+    return `<div class="cg-small-item" id="cgsmitem-${s.id}-${t.id}">
+      <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(t.name)}${cmtHtml}</span>
+      <span class="cg-pts">${t.points_obtained}/${t.points_total}pts</span>
+      <span class="cg-grade ${gc}">${g.toFixed(2)}</span>
+      <button class="btn-edit" onclick="startEditCGSmall(${s.id},${t.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGSmallTest(${s.id},${t.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun petit test</div>';
+
+  const petitsAvgBox = petitsAvg !== null ? `
+    <div class="cg-small-avg">
+      <span class="cg-small-avg-label">Moy. petits tests <span class="cg-small-avg-hint">(= 1 test dans la moyenne)</span></span>
+      <span class="${avgCls(petitsAvg)}" style="font-weight:700">${petitsAvg.toFixed(2)}</span>
+    </div>` : '';
+
+  const futureRows = futures.map(f => {
+    const mS = fmtMinGrade(minGrade);
+    const mY = fmtMinGrade(minGradeYear);
+    const showYear = mY && minGradeYear !== null && minGrade !== null && Math.abs(minGradeYear - minGrade) > 0.05;
+    return `<div class="cg-min-box" id="cgfitem-${s.id}-${f.id}">
+      <span class="mi-name">${esc(f.name)}</span>
+      <div style="text-align:right">
+        ${mS ? `<span class="cg-min-pts ${mS.cls}">${mS.label}</span>` : ''}
+        ${showYear ? `<span class="cg-min-sub">Année : <span class="${mY.cls}">${mY.label}</span></span>` : ''}
+      </div>
+      <button class="btn-edit" onclick="startEditCGFuture(${s.id},${f.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGFuture(${s.id},${f.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun test à venir</div>';
+
+  const cgPct    = semAvg !== null ? Math.min(semAvg / semTarget * 100, 100) : 0;
+  const cgBarCls = semAvg === null ? 'bar-r' : semAvg >= semTarget ? 'bar-g' : semAvg >= semTarget - 0.5 ? 'bar-o' : 'bar-r';
+
+  return `<div>
+    <div class="sub-sec-title" style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span>Semestre ${sem}</span><span class="${avgCls(semAvg)}">${fmtAvg(semAvg)}</span>
+    </div>
+    <div class="obj-row" style="margin-bottom:10px">
+      <span class="obj-label">🎯 Objectif</span>
+      <input type="number" class="obj-inp" value="${semTarget}" min="1" max="6" step="0.5"
+        onchange="setCGTarget(${s.id},${sem},+this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()" />
+      <div class="obj-bar-wrap"><div class="obj-bar-fill ${cgBarCls}" style="width:${cgPct.toFixed(1)}%"></div></div>
+      <span class="obj-info">${semAvg !== null ? semAvg.toFixed(2) : '—'} / <strong>${semTarget}</strong></span>
+    </div>
+    <div class="sub-sec-title">Tests</div>
+    ${testRows}
+    <div class="mini-add" style="margin-bottom:14px">
+      <input type="text"   placeholder="Nom"         id="cgt-name-${s.id}-${sem}" />
+      <input type="number" placeholder="Pts obtenus" id="cgt-obt-${s.id}-${sem}"  min="0" style="max-width:78px" />
+      <input type="number" placeholder="Pts totaux"  id="cgt-tot-${s.id}-${sem}"  min="1" style="max-width:78px" />
+      <button class="btn-mini" onclick="addCGTest(${s.id},${sem})">Test<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+    </div>
+    <div class="sub-sec-title">Petits Tests</div>
+    ${petitsRows}
+    ${petitsAvgBox}
+    <div class="mini-add" style="margin-bottom:14px">
+      <input type="text"   placeholder="Nom"         id="cgpt-name-${s.id}-${sem}" />
+      <input type="number" placeholder="Pts obtenus" id="cgpt-obt-${s.id}-${sem}"  min="0" style="max-width:78px" />
+      <input type="number" placeholder="Pts totaux"  id="cgpt-tot-${s.id}-${sem}"  min="1" style="max-width:78px" />
+      <button class="btn-mini" onclick="addCGSmallTest(${s.id},${sem})">Petit test<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+    </div>
+    <div class="sub-sec-title">Tests à venir</div>
+    ${futureRows}
+    <div class="mini-add">
+      <input type="text" placeholder="Nom" id="cgf-name-${s.id}-${sem}" />
+      <button class="btn-mini" onclick="addCGFuture(${s.id},${sem})">À venir<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — actions
+// ════════════════════════════════════════════════════════════
+function toggleAddCGSubject() {
+  const row = document.getElementById('add-cg-subject-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-cg-subj-name').focus();
+}
+
+async function addCGSubject() {
+  const name = document.getElementById('inp-cg-subj-name').value.trim();
+  if (!name) return showToast('Entrez un nom de matière', 'error');
+  try {
+    const s = await POST('/api/cg/subjects', { name, year: S.year });
+    S.cg.push(s);
+    document.getElementById('inp-cg-subj-name').value = '';
+    document.getElementById('add-cg-subject-row').style.display = 'none';
+    renderCG();
+    showToast(`Matière CG "${name}" ajoutée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCGSubject(id) {
+  if (!confirm('Supprimer cette matière CG et tous ses tests ?')) return;
+  try {
+    const name = S.cg.find(s => s.id === id)?.name;
+    await DELETE(`/api/cg/subjects/${id}`);
+    S.cg = S.cg.filter(s => s.id !== id);
+    if (S.cgExpanded === id) S.cgExpanded = null;
+    renderCG();
+    showToast(`Matière "${name}" supprimée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function toggleCGSubject(id) {
+  S.cgExpanded = S.cgExpanded === id ? null : id;
+  renderCG();
+}
+
+async function addCGTest(sid, sem) {
+  const name = document.getElementById(`cgt-name-${sid}-${sem}`).value.trim();
+  const obt  = parseFloat(document.getElementById(`cgt-obt-${sid}-${sem}`).value);
+  const tot  = parseFloat(document.getElementById(`cgt-tot-${sid}-${sem}`).value);
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > points totaux', 'error');
+  try {
+    const t = await POST(`/api/cg/subjects/${sid}/tests`, { semester: sem, name, points_obtained: obt, points_total: tot });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) { s.tests.push(t); renderCG(); }
+    showToast(`Test "${name}" ajouté (${obt}/${tot} pts)`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCGTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.tests.find(t => t.id === tid)?.name;
+  if (!confirm(`Supprimer le test "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/tests/${tid}`);
+    if (s) { s.tests = s.tests.filter(t => t.id !== tid); renderCG(); }
+    showToast(`Test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function addCGSmallTest(sid, sem) {
+  const name = document.getElementById(`cgpt-name-${sid}-${sem}`).value.trim();
+  const obt  = parseFloat(document.getElementById(`cgpt-obt-${sid}-${sem}`).value);
+  const tot  = parseFloat(document.getElementById(`cgpt-tot-${sid}-${sem}`).value);
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > points totaux', 'error');
+  try {
+    const t = await POST(`/api/cg/subjects/${sid}/small-tests`, { semester: sem, name, points_obtained: obt, points_total: tot });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) { s.petits_tests.push(t); renderCG(); }
+    showToast(`Petit test "${name}" ajouté (${obt}/${tot} pts)`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCGSmallTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.petits_tests.find(t => t.id === tid)?.name;
+  if (!confirm(`Supprimer le petit test "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/small-tests/${tid}`);
+    if (s) { s.petits_tests = s.petits_tests.filter(t => t.id !== tid); renderCG(); }
+    showToast(`Petit test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function addCGFuture(sid, sem) {
+  const name = document.getElementById(`cgf-name-${sid}-${sem}`).value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    const f = await POST(`/api/cg/subjects/${sid}/futures`, { semester: sem, name });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) { s.futures.push(f); renderCG(); }
+    showToast(`Test à venir "${name}" ajouté`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCGFuture(sid, fid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.futures.find(f => f.id === fid)?.name;
+  if (!confirm(`Supprimer le test à venir "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/futures/${fid}`);
+    if (s) { s.futures = s.futures.filter(f => f.id !== fid); renderCG(); }
+    showToast(`Test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Objectif actions
+// ════════════════════════════════════════════════════════════
+async function setSubjectTarget(sid, target) {
+  target = parseFloat(target);
+  if (isNaN(target) || target < 1 || target > 6) return showToast('Objectif invalide (1–6)', 'error');
+  try {
+    await PATCH(`/api/subjects/${sid}`, { target });
+    const s = S.subjects.find(s => s.id === sid);
+    if (s) s.target = target;
+    renderSubjectInPlace(sid);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function setCGTarget(sid, sem, target) {
+  target = parseFloat(target);
+  if (isNaN(target) || target < 1 || target > 6) return showToast('Objectif invalide (1–6)', 'error');
+  const key = sem === 1 ? 'target_s1' : 'target_s2';
+  try {
+    await PATCH(`/api/cg/subjects/${sid}`, { [key]: target });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) s[key] = target;
+    renderCG();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — subjects
+// ════════════════════════════════════════════════════════════
+function startEditSubject(sid) {
+  const s = S.subjects.find(s => s.id === sid);
+  if (!s) return;
+  const el = document.getElementById(`sname-${sid}`);
+  if (!el) return;
+  el.outerHTML = `<span id="sname-${sid}" style="flex:1;display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+    <input id="se-n-${sid}" value="${esc(s.name)}" style="background:rgba(255,255,255,0.06);border:1px solid var(--acc);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:.9rem;font-weight:600;font-family:'Syne',sans-serif;outline:none;flex:1;min-width:80px"
+      onkeydown="if(event.key==='Enter')saveEditSubject(${sid});if(event.key==='Escape')renderSubjectInPlace(${sid})" />
+    <button class="btn-save" style="padding:3px 8px;font-size:.75rem" onclick="saveEditSubject(${sid})">✓</button>
+    <button class="btn-cancel" style="padding:3px 8px;font-size:.75rem" onclick="renderSubjectInPlace(${sid})">✕</button>
+  </span>`;
+  document.getElementById(`se-n-${sid}`)?.focus();
+}
+
+async function saveEditSubject(sid) {
+  const name = document.getElementById(`se-n-${sid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/subjects/${sid}`, { name });
+    const s = S.subjects.find(s => s.id === sid);
+    if (s) s.name = name;
+    renderSubjectInPlace(sid);
+    showToast(`Matière renommée en "${name}"`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGSubject(sid) {
+  const s = S.cg.find(s => s.id === sid);
+  if (!s) return;
+  const el = document.getElementById(`cgname-${sid}`);
+  if (!el) return;
+  el.outerHTML = `<span id="cgname-${sid}" style="flex:1;display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+    <input id="cse-n-${sid}" value="${esc(s.name)}" style="background:rgba(255,255,255,0.06);border:1px solid var(--acc);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:.9rem;font-weight:600;font-family:'Syne',sans-serif;outline:none;flex:1;min-width:80px"
+      onkeydown="if(event.key==='Enter')saveEditCGSubject(${sid});if(event.key==='Escape')renderCG()" />
+    <button class="btn-save" style="padding:3px 8px;font-size:.75rem" onclick="saveEditCGSubject(${sid})">✓</button>
+    <button class="btn-cancel" style="padding:3px 8px;font-size:.75rem" onclick="renderCG()">✕</button>
+  </span>`;
+  document.getElementById(`cse-n-${sid}`)?.focus();
+}
+
+async function saveEditCGSubject(sid) {
+  const name = document.getElementById(`cse-n-${sid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/cg/subjects/${sid}`, { name });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) s.name = name;
+    renderCG();
+    showToast(`Matière CG renommée en "${name}"`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — grades & futures
+// ════════════════════════════════════════════════════════════
+function editCommentInline(spanId, type, id1, id2) {
+  const span = document.getElementById(spanId);
+  if (!span) return;
+  const current = span.dataset.comment || '';
+  span.outerHTML = `<input id="${spanId}-inp" class="comment-inp" value="${esc(current)}" placeholder="Ajouter un commentaire..."
+    onkeydown="if(event.key==='Enter'){this.dataset.ok='1';this.blur()}if(event.key==='Escape')this.blur()"
+    onblur="saveCommentInline('${spanId}','${type}',${id1},${id2},this)" />`;
+  document.getElementById(`${spanId}-inp`)?.select();
+}
+
+async function saveCommentInline(spanId, type, id1, id2, inp) {
+  if (inp.dataset.ok !== '1' && document.activeElement === inp) return;
+  const val = inp.value.trim();
+  const routes = { grade: `/api/grades/${id1}`, cgtest: `/api/cg/tests/${id1}`, cgsmall: `/api/cg/small-tests/${id1}` };
+  try {
+    await PATCH(routes[type], { comment: val });
+    if (type === 'grade') {
+      const g = S.details[id2]?.grades.find(g => g.id === id1);
+      if (g) g.comment = val;
+      renderSubjectInPlace(id2);
+    } else {
+      const s = S.cg.find(s => s.id === id2);
+      if (s) {
+        const arr = type === 'cgtest' ? s.tests : s.petits_tests;
+        const t = arr?.find(t => t.id === id1);
+        if (t) t.comment = val;
+      }
+      renderCG();
+    }
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditGrade(sid, gid) {
+  const g = S.details[sid]?.grades.find(g => g.id === gid);
+  if (!g) return;
+  const el = document.getElementById(`gitem-${sid}-${gid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="gitem-${sid}-${gid}">
+    <input id="ge-n-${gid}" value="${esc(g.name)}" placeholder="Nom" />
+    <input id="ge-v-${gid}" type="number" value="${g.value}" min="1" max="6" step="0.5" style="max-width:70px" placeholder="Note" />
+    <input id="ge-w-${gid}" type="number" value="${g.weight}" min="1" max="100" style="max-width:65px" placeholder="Poids%" />
+    <input id="ge-c-${gid}" value="${esc(g.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditGrade(${sid},${gid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderSubjectInPlace(${sid})">Annuler</button>
+  </div>`;
+  document.getElementById(`ge-n-${gid}`)?.focus();
+}
+
+async function saveEditGrade(sid, gid) {
+  const name    = document.getElementById(`ge-n-${gid}`)?.value.trim();
+  const value   = parseFloat(document.getElementById(`ge-v-${gid}`)?.value);
+  const weight  = parseFloat(document.getElementById(`ge-w-${gid}`)?.value);
+  const comment = document.getElementById(`ge-c-${gid}`)?.value.trim() ?? '';
+  if (!name)                          return showToast('Entrez un nom', 'error');
+  if (isNaN(value)||value<1||value>6) return showToast('Note invalide (1–6)', 'error');
+  if (isNaN(weight)||weight<=0)       return showToast('Poids % invalide', 'error');
+  try {
+    await PATCH(`/api/grades/${gid}`, { name, value, weight, comment });
+    const g = S.details[sid]?.grades.find(g => g.id === gid);
+    if (g) { g.name = name; g.value = value; g.weight = weight; g.comment = comment; }
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" modifiée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditFuture(sid, fid) {
+  const f = S.details[sid]?.futures.find(f => f.id === fid);
+  if (!f) return;
+  const el = document.getElementById(`fitem-${sid}-${fid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="fitem-${sid}-${fid}">
+    <input id="fe-n-${fid}" value="${esc(f.name)}" placeholder="Nom" />
+    <input id="fe-w-${fid}" type="number" value="${f.weight}" min="1" max="100" style="max-width:65px" placeholder="Poids%" />
+    <button class="btn-save" onclick="saveEditFuture(${sid},${fid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderSubjectInPlace(${sid})">Annuler</button>
+  </div>`;
+  document.getElementById(`fe-n-${fid}`)?.focus();
+}
+
+async function saveEditFuture(sid, fid) {
+  const name   = document.getElementById(`fe-n-${fid}`)?.value.trim();
+  const weight = parseFloat(document.getElementById(`fe-w-${fid}`)?.value);
+  if (!name)                    return showToast('Entrez un nom', 'error');
+  if (isNaN(weight)||weight<=0) return showToast('Poids % invalide', 'error');
+  try {
+    await PATCH(`/api/future/${fid}`, { name, weight });
+    const f = S.details[sid]?.futures.find(f => f.id === fid);
+    if (f) { f.name = name; f.weight = weight; }
+    renderSubjectInPlace(sid);
+    showToast(`Test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — projects
+// ════════════════════════════════════════════════════════════
+function startEditProject(pid) {
+  const p = S.projects.find(p => p.id === pid);
+  if (!p) return;
+  const el = document.getElementById(`pitem-${pid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="pitem-${pid}">
+    <input id="pe-n-${pid}" value="${esc(p.name)}" placeholder="Nom du projet" />
+    <input id="pe-p-${pid}" type="number" value="${p.periods}" min="1" style="max-width:80px" placeholder="Périodes" />
+    <button class="btn-save" onclick="saveEditProject(${pid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderProjects()">Annuler</button>
+  </div>`;
+  document.getElementById(`pe-n-${pid}`)?.focus();
+}
+
+async function saveEditProject(pid) {
+  const name    = document.getElementById(`pe-n-${pid}`)?.value.trim();
+  const periods = parseInt(document.getElementById(`pe-p-${pid}`)?.value, 10);
+  if (!name)                     return showToast('Entrez un nom', 'error');
+  if (isNaN(periods)||periods<1) return showToast('Périodes invalides', 'error');
+  try {
+    await PATCH(`/api/projects/${pid}`, { name, periods });
+    const p = S.projects.find(p => p.id === pid);
+    if (p) { p.name = name; p.periods = periods; }
+    renderProjects();
+    showToast(`Projet "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — CG tests, petits tests, futures
+// ════════════════════════════════════════════════════════════
+function startEditCGTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const t = s?.tests.find(t => t.id === tid);
+  if (!t) return;
+  const el = document.getElementById(`cgitem-${sid}-${tid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgitem-${sid}-${tid}">
+    <input id="cgte-n-${tid}" value="${esc(t.name)}" placeholder="Nom" />
+    <input id="cgte-o-${tid}" type="number" value="${t.points_obtained}" min="0" style="max-width:70px" placeholder="Pts obtenus" />
+    <input id="cgte-t-${tid}" type="number" value="${t.points_total}" min="1" style="max-width:70px" placeholder="Pts totaux" />
+    <input id="cgte-c-${tid}" value="${esc(t.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditCGTest(${sid},${tid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgte-n-${tid}`)?.focus();
+}
+
+async function saveEditCGTest(sid, tid) {
+  const name    = document.getElementById(`cgte-n-${tid}`)?.value.trim();
+  const obt     = parseFloat(document.getElementById(`cgte-o-${tid}`)?.value);
+  const tot     = parseFloat(document.getElementById(`cgte-t-${tid}`)?.value);
+  const comment = document.getElementById(`cgte-c-${tid}`)?.value.trim() ?? '';
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > totaux', 'error');
+  try {
+    await PATCH(`/api/cg/tests/${tid}`, { name, points_obtained: obt, points_total: tot, comment });
+    const s = S.cg.find(s => s.id === sid);
+    const t = s?.tests.find(t => t.id === tid);
+    if (t) { t.name = name; t.points_obtained = obt; t.points_total = tot; t.comment = comment; }
+    renderCG();
+    showToast(`Test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGSmall(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const t = s?.petits_tests.find(t => t.id === tid);
+  if (!t) return;
+  const el = document.getElementById(`cgsmitem-${sid}-${tid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgsmitem-${sid}-${tid}">
+    <input id="cgsme-n-${tid}" value="${esc(t.name)}" placeholder="Nom" />
+    <input id="cgsme-o-${tid}" type="number" value="${t.points_obtained}" min="0" style="max-width:70px" placeholder="Pts obtenus" />
+    <input id="cgsme-t-${tid}" type="number" value="${t.points_total}" min="1" style="max-width:70px" placeholder="Pts totaux" />
+    <input id="cgsme-c-${tid}" value="${esc(t.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditCGSmall(${sid},${tid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgsme-n-${tid}`)?.focus();
+}
+
+async function saveEditCGSmall(sid, tid) {
+  const name    = document.getElementById(`cgsme-n-${tid}`)?.value.trim();
+  const obt     = parseFloat(document.getElementById(`cgsme-o-${tid}`)?.value);
+  const tot     = parseFloat(document.getElementById(`cgsme-t-${tid}`)?.value);
+  const comment = document.getElementById(`cgsme-c-${tid}`)?.value.trim() ?? '';
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > totaux', 'error');
+  try {
+    await PATCH(`/api/cg/small-tests/${tid}`, { name, points_obtained: obt, points_total: tot, comment });
+    const s = S.cg.find(s => s.id === sid);
+    const t = s?.petits_tests.find(t => t.id === tid);
+    if (t) { t.name = name; t.points_obtained = obt; t.points_total = tot; t.comment = comment; }
+    renderCG();
+    showToast(`Petit test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGFuture(sid, fid) {
+  const s = S.cg.find(s => s.id === sid);
+  const f = s?.futures.find(f => f.id === fid);
+  if (!f) return;
+  const el = document.getElementById(`cgfitem-${sid}-${fid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgfitem-${sid}-${fid}">
+    <input id="cgfe-n-${fid}" value="${esc(f.name)}" placeholder="Nom" />
+    <button class="btn-save" onclick="saveEditCGFuture(${sid},${fid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgfe-n-${fid}`)?.focus();
+}
+
+async function saveEditCGFuture(sid, fid) {
+  const name = document.getElementById(`cgfe-n-${fid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/cg/futures/${fid}`, { name });
+    const s = S.cg.find(s => s.id === sid);
+    const f = s?.futures.find(f => f.id === fid);
+    if (f) f.name = name;
+    renderCG();
+    showToast(`Test à venir "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Enter key support
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const id = e.target.id;
+  if (id === 'inp-subj-name')  addSubject();
+  if (id === 'inp-proj-name' || id === 'inp-proj-periods') addProject();
+  if (id === 'inp-username' || id === 'inp-password' || id === 'inp-email') submitAuth();
+});
+
+// ════════════════════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════════════════════
+applyTheme(localStorage.getItem('theme') || 'dark');
+if (S.token) {
+  showApp();
+} else {
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+</script>
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+<script>
+  window.addEventListener('scroll', () => {
+    document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+</body>
+</html>

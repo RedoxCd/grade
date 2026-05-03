@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:grp1c-rossettib.w3.pm2etml.ch)",
+      "WebSearch",
+      "WebFetch(domain:cssbuttons.io)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(netstat *)",
+      "PowerShell(taskkill *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(cd C:\\\\Users\\\\benja\\\\applications\\\\grade; $loginResp = Invoke-RestMethod -Uri \"http://localhost:3000/api/login\" -Method POST -ContentType \"application/json\" -Body '{\"username\":\"test\",\"password\":\"test\"}' -ErrorAction SilentlyContinue; if \\($loginResp.token\\) { $headers = @{ Authorization = \"Bearer $\\($loginResp.token\\)\" }; $resp = Invoke-WebRequest -Uri \"http://localhost:3000/api/export/pdf\" -Headers $headers -ErrorAction SilentlyContinue; \"Status: $\\($resp.StatusCode\\)  ContentType: $\\($resp.Headers['Content-Type']\\)  Size: $\\($resp.Content.Length\\) bytes\" } else { \"Login failed or no test user — testing route existence only\"; Invoke-WebRequest -Uri \"http://localhost:3000/api/export/pdf\" -ErrorAction SilentlyContinue | Select-Object StatusCode })",
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing | Select-Object -ExpandProperty StatusCode)"
+    ]
+  }
+}
