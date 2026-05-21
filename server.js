@@ -5,8 +5,13 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
+const helmet      = require('helmet');
+const rateLimit   = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 
-const DB_PATH = path.join(__dirname, 'grades.db');
+const DB_PATH = process.env.DATABASE_PATH
+  ? path.resolve(process.env.DATABASE_PATH)
+  : path.join(__dirname, 'grades.db');
 const SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
 const PORT = process.env.PORT || 3000;
 
@@ -15,6 +20,7 @@ async function main() {
     locateFile: file => path.join(__dirname, 'node_modules', 'sql.js', 'dist', file)
   });
 
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const db = fs.existsSync(DB_PATH)
     ? new SQL.Database(fs.readFileSync(DB_PATH))
     : new SQL.Database();
@@ -96,6 +102,13 @@ async function main() {
   if (!cgSubjCols.some(c => c.name === 'target_s1')) {
     db.run('ALTER TABLE cg_subjects ADD COLUMN target_s1 REAL DEFAULT 4.0');
     db.run('ALTER TABLE cg_subjects ADD COLUMN target_s2 REAL DEFAULT 4.0');
+    save();
+  }
+
+  // Migration 5b: add is_petit_test to cg_futures
+  const cgFutCols2 = all('PRAGMA table_info(cg_futures)');
+  if (!cgFutCols2.some(c => c.name === 'is_petit_test')) {
+    db.run('ALTER TABLE cg_futures ADD COLUMN is_petit_test INTEGER NOT NULL DEFAULT 0');
     save();
   }
 
@@ -201,8 +214,50 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
   `);
 
   const app = express();
-  app.use(express.json());
+  app.use(helmet());
+  app.use(express.json({ limit: '50kb' }));
   app.use(express.static(path.join(__dirname, 'public')));
+
+  // ── Rate limiting ──────────────────────────────────────────────────────────────
+  app.use('/api/', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Trop de requêtes, réessayez dans 15 minutes' },
+  }));
+  const limiterAuth = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Trop de tentatives de connexion, réessayez dans 15 minutes' },
+  });
+
+  // ── Validation helpers ────────────────────────────────────────────────────────
+  const checkValidation = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
+    next();
+  };
+
+  const vName      = body('name').trim().isLength({ min: 1, max: 100 }).withMessage('Nom invalide (1–100 caractères)');
+  const vNameOpt   = body('name').optional().trim().isLength({ min: 1, max: 100 }).withMessage('Nom invalide (1–100 caractères)');
+  const vEmail     = body('email').trim().isEmail().withMessage('Adresse email invalide');
+  const vPassword  = body('password').isLength({ min: 6, max: 128 }).withMessage('Mot de passe : 6–128 caractères requis');
+  const vUsername  = body('username').trim()
+    .isLength({ min: 1, max: 50 }).withMessage("Nom d'utilisateur requis (1–50 caractères)")
+    .matches(/^[\w.\-]+$/).withMessage("Nom d'utilisateur invalide (lettres, chiffres, _ - .)");
+  const vYear      = body('year').isInt({ min: 1, max: 4 }).toInt().withMessage('Année invalide (1–4)');
+  const vTrimester = body('trimester').isInt({ min: 1, max: 4 }).toInt().withMessage('Trimestre invalide (1–4)');
+  const vSemester  = body('semester').isInt({ min: 1, max: 2 }).toInt().withMessage('Semestre invalide (1–2)');
+  const vWeight    = body('weight').isFloat({ min: 0.1, max: 100 }).toFloat().withMessage('Poids invalide (0.1–100%)');
+  const vValue     = body('value').isFloat({ min: 1, max: 6 }).toFloat().withMessage('Note invalide (1–6)');
+  const vPeriods   = body('periods').isInt({ min: 1, max: 10000 }).toInt().withMessage('Périodes invalides (1–10000)');
+  const vObt       = body('points_obtained').isFloat({ min: 0 }).toFloat().withMessage('Points obtenus invalides (≥ 0)');
+  const vTot       = body('points_total').isFloat({ min: 0.1 }).toFloat().withMessage('Points totaux invalides (> 0)');
+  const vComment   = body('comment').optional({ nullable: true }).trim().isLength({ max: 500 }).withMessage('Commentaire trop long (max 500 caractères)');
+  const vTargetOpt = body('target').optional().isFloat({ min: 1, max: 6 }).toFloat().withMessage('Objectif invalide (1–6)');
 
   // ── Auth middleware ───────────────────────────────────────────────────────────
   function auth(req, res, next) {
@@ -217,7 +272,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
   }
 
   // ── Auth routes ───────────────────────────────────────────────────────────────
-  app.post('/api/register', (req, res) => {
+  app.post('/api/register', limiterAuth, [vUsername, vEmail, vPassword], checkValidation, (req, res) => {
     const { username, email, password } = req.body ?? {};
     if (!username?.trim() || !email?.trim() || !password)
       return res.status(400).json({ error: 'Nom, email et mot de passe requis' });
@@ -237,7 +292,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     }
   });
 
-  app.post('/api/login', (req, res) => {
+  app.post('/api/login', limiterAuth, [vUsername, body('password').isLength({ min: 1, max: 128 }).withMessage('Mot de passe requis')], checkValidation, (req, res) => {
     const { username, password } = req.body ?? {};
     const user = get('SELECT * FROM users WHERE username = ?', [username]);
     if (!user || !bcrypt.compareSync(password, user.password_hash))
@@ -258,7 +313,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json(rows);
   });
 
-  app.post('/api/subjects', auth, (req, res) => {
+  app.post('/api/subjects', auth, [vName, vYear, vTrimester], checkValidation, (req, res) => {
     const { name, year, trimester } = req.body ?? {};
     if (!name?.trim() || !year || !trimester)
       return res.status(400).json({ error: 'Nom, année et trimestre requis' });
@@ -280,7 +335,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/subjects/:id', auth, (req, res) => {
+  app.patch('/api/subjects/:id', auth, [vNameOpt, vTargetOpt], checkValidation, (req, res) => {
     const s = get('SELECT id FROM subjects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!s) return res.status(404).json({ error: 'Matière introuvable' });
     const body = req.body ?? {};
@@ -308,7 +363,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ grades, futures });
   });
 
-  app.post('/api/subjects/:id/grades', auth, (req, res) => {
+  app.post('/api/subjects/:id/grades', auth, [vName, vValue, vWeight, vComment], checkValidation, (req, res) => {
     if (!ownsSubject(req.params.id, req.user.id))
       return res.status(404).json({ error: 'Matière introuvable' });
     const { name, value, weight, comment = '' } = req.body ?? {};
@@ -335,7 +390,12 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/grades/:id', auth, (req, res) => {
+  app.patch('/api/grades/:id', auth, [
+    vNameOpt,
+    body('value').optional().isFloat({ min: 1, max: 6 }).toFloat().withMessage('Note invalide (1–6)'),
+    body('weight').optional().isFloat({ min: 0.1, max: 100 }).toFloat().withMessage('Poids invalide (0.1–100%)'),
+    vComment,
+  ], checkValidation, (req, res) => {
     const g = get(
       'SELECT g.id FROM grades g JOIN subjects s ON g.subject_id = s.id WHERE g.id = ? AND s.user_id = ?',
       [req.params.id, req.user.id]
@@ -356,7 +416,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
   });
 
   // ── Future tests ──────────────────────────────────────────────────────────────
-  app.post('/api/subjects/:id/future', auth, (req, res) => {
+  app.post('/api/subjects/:id/future', auth, [vName, vWeight], checkValidation, (req, res) => {
     if (!ownsSubject(req.params.id, req.user.id))
       return res.status(404).json({ error: 'Matière introuvable' });
     const { name, weight } = req.body ?? {};
@@ -379,7 +439,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/future/:id', auth, (req, res) => {
+  app.patch('/api/future/:id', auth, [vName, vWeight], checkValidation, (req, res) => {
     const f = get(
       'SELECT f.id FROM future_tests f JOIN subjects s ON f.subject_id = s.id WHERE f.id = ? AND s.user_id = ?',
       [req.params.id, req.user.id]
@@ -404,7 +464,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json(rows);
   });
 
-  app.post('/api/projects', auth, (req, res) => {
+  app.post('/api/projects', auth, [vName, vPeriods, vYear, vTrimester], checkValidation, (req, res) => {
     const { name, periods, year, trimester } = req.body ?? {};
     if (!name?.trim() || !periods || !year || !trimester)
       return res.status(400).json({ error: 'Champs manquants' });
@@ -415,7 +475,11 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.status(201).json({ id, name: name.trim(), periods, year, trimester, success: 0 });
   });
 
-  app.patch('/api/projects/:id', auth, (req, res) => {
+  app.patch('/api/projects/:id', auth, [
+    vNameOpt,
+    body('periods').optional().isInt({ min: 1, max: 10000 }).toInt().withMessage('Périodes invalides (1–10000)'),
+    body('success').optional().isBoolean().toBoolean().withMessage('success invalide'),
+  ], checkValidation, (req, res) => {
     const p = get('SELECT id FROM projects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!p) return res.status(404).json({ error: 'Projet introuvable' });
     if ('name' in (req.body ?? {})) {
@@ -451,7 +515,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json(subjects);
   });
 
-  app.post('/api/cg/subjects', auth, (req, res) => {
+  app.post('/api/cg/subjects', auth, [vName, vYear], checkValidation, (req, res) => {
     const { name, year } = req.body ?? {};
     if (!name?.trim() || !year) return res.status(400).json({ error: 'Nom et année requis' });
     const { lastInsertRowid: id } = run(
@@ -468,7 +532,11 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/cg/subjects/:id', auth, (req, res) => {
+  app.patch('/api/cg/subjects/:id', auth, [
+    vNameOpt,
+    body('target_s1').optional().isFloat({ min: 1, max: 6 }).toFloat().withMessage('Objectif S1 invalide (1–6)'),
+    body('target_s2').optional().isFloat({ min: 1, max: 6 }).toFloat().withMessage('Objectif S2 invalide (1–6)'),
+  ], checkValidation, (req, res) => {
     const s = get('SELECT id FROM cg_subjects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!s) return res.status(404).json({ error: 'Matière introuvable' });
     const body = req.body ?? {};
@@ -476,7 +544,8 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
       const key = 'target_s1' in body ? 'target_s1' : 'target_s2';
       const t = parseFloat(body[key]);
       if (isNaN(t) || t < 1 || t > 6) return res.status(400).json({ error: 'Objectif invalide (1–6)' });
-      run(`UPDATE cg_subjects SET ${key} = ? WHERE id = ?`, [t, req.params.id]);
+      const safeCol = key === 'target_s1' ? 'target_s1' : 'target_s2';
+      run(`UPDATE cg_subjects SET ${safeCol} = ? WHERE id = ?`, [t, req.params.id]);
     } else {
       if (!body.name?.trim()) return res.status(400).json({ error: 'Nom requis' });
       run('UPDATE cg_subjects SET name = ? WHERE id = ?', [body.name.trim(), req.params.id]);
@@ -484,7 +553,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.post('/api/cg/subjects/:id/tests', auth, (req, res) => {
+  app.post('/api/cg/subjects/:id/tests', auth, [vSemester, vName, vObt, vTot, vComment], checkValidation, (req, res) => {
     const s = get('SELECT id FROM cg_subjects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!s) return res.status(404).json({ error: 'Matière introuvable' });
     const { semester, name, points_obtained, points_total, comment = '' } = req.body ?? {};
@@ -509,7 +578,12 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/cg/tests/:id', auth, (req, res) => {
+  app.patch('/api/cg/tests/:id', auth, [
+    vNameOpt,
+    body('points_obtained').optional().isFloat({ min: 0 }).toFloat().withMessage('Points obtenus invalides (≥ 0)'),
+    body('points_total').optional().isFloat({ min: 0.1 }).toFloat().withMessage('Points totaux invalides (> 0)'),
+    vComment,
+  ], checkValidation, (req, res) => {
     const t = get(
       'SELECT t.id FROM cg_tests t JOIN cg_subjects s ON t.cg_subject_id = s.id WHERE t.id = ? AND s.user_id = ?',
       [req.params.id, req.user.id]
@@ -529,19 +603,23 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.post('/api/cg/subjects/:id/futures', auth, (req, res) => {
+  app.post('/api/cg/subjects/:id/futures', auth, [
+    vSemester, vName,
+    body('is_petit_test').optional().isInt({ min: 0, max: 1 }).toInt().withMessage('is_petit_test invalide (0 ou 1)'),
+  ], checkValidation, (req, res) => {
     const s = get('SELECT id FROM cg_subjects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!s) return res.status(404).json({ error: 'Matière introuvable' });
-    const { semester, name } = req.body ?? {};
+    const { semester, name, is_petit_test = 0 } = req.body ?? {};
     if (!name?.trim() || !semester) return res.status(400).json({ error: 'Champs manquants' });
+    const isPetit = is_petit_test ? 1 : 0;
     const { lastInsertRowid: id } = run(
-      'INSERT INTO cg_futures (cg_subject_id, semester, name) VALUES (?, ?, ?)',
-      [req.params.id, semester, name.trim()]
+      'INSERT INTO cg_futures (cg_subject_id, semester, name, is_petit_test) VALUES (?, ?, ?, ?)',
+      [req.params.id, semester, name.trim(), isPetit]
     );
-    res.status(201).json({ id, cg_subject_id: +req.params.id, semester: +semester, name: name.trim() });
+    res.status(201).json({ id, cg_subject_id: +req.params.id, semester: +semester, name: name.trim(), is_petit_test: isPetit });
   });
 
-  app.post('/api/cg/subjects/:id/small-tests', auth, (req, res) => {
+  app.post('/api/cg/subjects/:id/small-tests', auth, [vSemester, vName, vObt, vTot, vComment], checkValidation, (req, res) => {
     const s = get('SELECT id FROM cg_subjects WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
     if (!s) return res.status(404).json({ error: 'Matière introuvable' });
     const { semester, name, points_obtained, points_total, comment = '' } = req.body ?? {};
@@ -566,7 +644,12 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/cg/small-tests/:id', auth, (req, res) => {
+  app.patch('/api/cg/small-tests/:id', auth, [
+    vNameOpt,
+    body('points_obtained').optional().isFloat({ min: 0 }).toFloat().withMessage('Points obtenus invalides (≥ 0)'),
+    body('points_total').optional().isFloat({ min: 0.1 }).toFloat().withMessage('Points totaux invalides (> 0)'),
+    vComment,
+  ], checkValidation, (req, res) => {
     const t = get(
       'SELECT t.id FROM cg_petits_tests t JOIN cg_subjects s ON t.cg_subject_id = s.id WHERE t.id = ? AND s.user_id = ?',
       [req.params.id, req.user.id]
@@ -596,7 +679,7 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
     res.json({ ok: true });
   });
 
-  app.patch('/api/cg/futures/:id', auth, (req, res) => {
+  app.patch('/api/cg/futures/:id', auth, [vName], checkValidation, (req, res) => {
     const f = get(
       'SELECT f.id FROM cg_futures f JOIN cg_subjects s ON f.cg_subject_id = s.id WHERE f.id = ? AND s.user_id = ?',
       [req.params.id, req.user.id]
@@ -971,6 +1054,13 @@ CREATE TABLE IF NOT EXISTS cg_petits_tests (
       try { db.run('ROLLBACK'); } catch {}
       res.status(400).json({ error: 'Import invalide : ' + e.message });
     }
+  });
+
+  // ── Global error handler ──────────────────────────────────────────────────────
+  app.use((err, req, res, _next) => {
+    if (err.type === 'entity.too.large') return res.status(413).json({ error: 'Requête trop volumineuse (max 50 Ko)' });
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
   });
 
   // ── Start ─────────────────────────────────────────────────────────────────────

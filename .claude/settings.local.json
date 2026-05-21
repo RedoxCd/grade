@@ -9,7 +9,13 @@
       "PowerShell(taskkill *)",
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(cd C:\\\\Users\\\\benja\\\\applications\\\\grade; $loginResp = Invoke-RestMethod -Uri \"http://localhost:3000/api/login\" -Method POST -ContentType \"application/json\" -Body '{\"username\":\"test\",\"password\":\"test\"}' -ErrorAction SilentlyContinue; if \\($loginResp.token\\) { $headers = @{ Authorization = \"Bearer $\\($loginResp.token\\)\" }; $resp = Invoke-WebRequest -Uri \"http://localhost:3000/api/export/pdf\" -Headers $headers -ErrorAction SilentlyContinue; \"Status: $\\($resp.StatusCode\\)  ContentType: $\\($resp.Headers['Content-Type']\\)  Size: $\\($resp.Content.Length\\) bytes\" } else { \"Login failed or no test user — testing route existence only\"; Invoke-WebRequest -Uri \"http://localhost:3000/api/export/pdf\" -ErrorAction SilentlyContinue | Select-Object StatusCode })",
-      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing | Select-Object -ExpandProperty StatusCode)"
+      "PowerShell(Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing | Select-Object -ExpandProperty StatusCode)",
+      "Bash(Start-Sleep -Seconds 3)",
+      "Bash(Get-Content \"C:\\\\Users\\\\benja\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-benja-applications-grade\\\\c91282da-1158-492d-8db8-fceaa9d0b345\\\\tasks\\\\br0xyklrz.output\" -Tail 10)",
+      "PowerShell(Stop-Process *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"require\\('./server.js'\\)\")",
+      "Bash(curl -s http://localhost:3000/api/login -X POST -H \"Content-Type: application/json\" -d '{}')"
     ]
   }
 }
