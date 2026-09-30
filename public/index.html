@@ -1,0 +1,3595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<script>(function(){var t=localStorage.getItem('theme')||'dark';if(t==='light')document.documentElement.classList.add('light');}())</script>
+<script>(function(){
+  // Compte partagé benross.ch : si pas de session locale, tente une connexion
+  // automatique via le cookie partagé avec reveo.benross.ch.
+  if(localStorage.getItem('token'))return;
+  fetch('/api/sso/exchange').then(function(r){return r.ok?r.json():null}).then(function(j){
+    if(j&&j.token){
+      localStorage.setItem('token',j.token);
+      localStorage.setItem('username',j.username);
+      localStorage.setItem('fullName',j.full_name||'');
+      location.reload();
+    }
+  }).catch(function(){});
+})();</script>
+</head>
+<body>
+
+<!-- Blobs -->
+<div class="bg">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+
+<!-- ═══════════════════════════════ AUTH ═══════════════════════════════════ -->
+<div id="auth-overlay">
+  <div id="auth-page">
+
+    <!-- ── Gauche : branding + formulaire ── -->
+    <div class="auth-left">
+      <div id="auth-intro">
+        <div class="app-logo">Grade</div>
+        <p class="app-tagline">L'outil de suivi pour ta formation CFC.<br>Notes, CG, projets et agenda — tout au même endroit, pour ne rien rater de tes 4 ans.</p>
+        <div class="app-features">
+          <div class="app-feature"><div class="app-feature-dot"></div>Suivi des moyennes par matière et trimestre</div>
+          <div class="app-feature"><div class="app-feature-dot"></div>Section Culture Générale avec calcul automatique</div>
+          <div class="app-feature"><div class="app-feature-dot"></div>Gestion des projets et validation des périodes</div>
+          <div class="app-feature"><div class="app-feature-dot"></div>Agenda, emploi du temps et devoirs</div>
+          <div class="app-feature"><div class="app-feature-dot"></div>Export PDF et graphiques d'évolution</div>
+        </div>
+      </div>
+
+      <div class="auth-box">
+        <h2 id="auth-title">Connexion</h2>
+        <p id="auth-sub">Accédez à vos notes scolaires</p>
+        <div class="err-msg" id="auth-err"></div>
+        <div class="field" id="field-email" style="display:none">
+          <label>Email</label>
+          <input type="email" id="inp-email" placeholder="exemple@email.com" />
+        </div>
+        <div class="field">
+          <label>Nom d'utilisateur</label>
+          <input type="text" id="inp-username" placeholder="ton_pseudo" />
+        </div>
+        <div class="field">
+          <label>Mot de passe</label>
+          <input type="password" id="inp-password" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" id="auth-btn" onclick="submitAuth()">
+          <span id="auth-btn-text">Se connecter</span>
+          <div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div>
+        </button>
+        <div class="auth-switch">
+          <span id="auth-switch-text">Pas encore de compte ?</span>
+          <a onclick="toggleAuthMode()"> <span id="auth-switch-link">S'inscrire</span></a>
+        </div>
+        <div style="text-align:center;margin-top:10px">
+          <a id="forgot-link" onclick="openForgotModal()" style="font-size:.82rem;color:var(--acc);opacity:.75;cursor:pointer;text-decoration:underline;text-underline-offset:3px">Mot de passe oublié ?</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Droite : mockup app ── -->
+    <div class="auth-right">
+      <div class="auth-mockup-glow"></div>
+      <div class="app-mockup" id="app-mockup">
+        <!-- Header -->
+        <div class="mock-header">
+          <div class="mock-logo">Grade</div>
+          <div class="mock-nav-pill active">Informatique</div>
+          <div class="mock-nav-pill">CG</div>
+          <div class="mock-nav-pill">Projets</div>
+          <div class="mock-avatar">M</div>
+        </div>
+        <!-- Stats -->
+        <div class="mock-stats">
+          <div class="mock-stat">
+            <div class="mock-stat-lbl">Moyenne</div>
+            <div class="mock-stat-val" style="color:#34d399">4.85</div>
+          </div>
+          <div class="mock-stat">
+            <div class="mock-stat-lbl">Matières</div>
+            <div class="mock-stat-val">6</div>
+          </div>
+          <div class="mock-stat">
+            <div class="mock-stat-lbl">Notes</div>
+            <div class="mock-stat-val">24</div>
+          </div>
+          <div class="mock-stat">
+            <div class="mock-stat-lbl">Projets</div>
+            <div class="mock-stat-val" style="color:#34d399">3 ✓</div>
+          </div>
+        </div>
+        <!-- Subjects -->
+        <div class="mock-subjects">
+          <div class="mock-subject">
+            <div class="mock-subj-name">Algorithmique</div>
+            <div class="mock-subj-bar"><div class="mock-subj-bar-fill" style="width:87%;background:#34d399"></div></div>
+            <div class="mock-subj-avg" style="color:#34d399">5.2</div>
+          </div>
+          <div class="mock-subject">
+            <div class="mock-subj-name">Réseaux</div>
+            <div class="mock-subj-bar"><div class="mock-subj-bar-fill" style="width:68%;background:#f97316"></div></div>
+            <div class="mock-subj-avg" style="color:#f97316">4.1</div>
+          </div>
+          <div class="mock-subject">
+            <div class="mock-subj-name">Bases de données</div>
+            <div class="mock-subj-bar"><div class="mock-subj-bar-fill" style="width:80%;background:#34d399"></div></div>
+            <div class="mock-subj-avg" style="color:#34d399">4.8</div>
+          </div>
+          <div class="mock-subject">
+            <div class="mock-subj-name">Sécurité informatique</div>
+            <div class="mock-subj-bar"><div class="mock-subj-bar-fill" style="width:93%;background:#34d399"></div></div>
+            <div class="mock-subj-avg" style="color:#34d399">5.5</div>
+          </div>
+        </div>
+        <!-- Chart -->
+        <div class="mock-chart">
+          <div class="mock-chart-lbl">Évolution par trimestre</div>
+          <div class="mock-chart-bars">
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:55%;background:rgba(167,139,250,.4)"></div><div class="mock-bar-x">T1</div></div>
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:68%;background:rgba(167,139,250,.5)"></div><div class="mock-bar-x">T2</div></div>
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:72%;background:rgba(167,139,250,.6)"></div><div class="mock-bar-x">T3</div></div>
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:80%;background:rgba(167,139,250,.75)"></div><div class="mock-bar-x">T4</div></div>
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:85%;background:var(--acc)"></div><div class="mock-bar-x">T5</div></div>
+            <div class="mock-bar-wrap"><div class="mock-bar" style="height:90%;background:var(--acc);box-shadow:0 0 10px rgba(167,139,250,.5)"></div><div class="mock-bar-x">T6</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PROFILE MODAL ═══════════════════════════ -->
+<div id="modal-profile" class="pwd-modal" onclick="if(event.target===this)closeProfileModal()">
+  <div class="pwd-modal-box" style="width:min(520px,100%);max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem">Mon Profil</h3>
+      <button onclick="closeProfileModal()" style="background:none;border:none;color:var(--tx2);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem">✕</button>
+    </div>
+    <!-- Avatar + identité -->
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.4rem">
+      <div style="position:relative;flex-shrink:0">
+        <div id="profile-avatar-large" style="width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;overflow:hidden;cursor:pointer" onclick="document.getElementById('avatar-file-input').click()" title="Changer la photo"></div>
+        <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--bg);border:1px solid var(--tx);display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:none">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tx)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+      </div>
+      <div>
+        <div id="profile-username-display" style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem"></div>
+        <div id="profile-role-display" style="font-size:.78rem;margin-top:2px"></div>
+        <div id="profile-since-display" style="font-size:.73rem;color:var(--tx2);margin-top:3px"></div>
+        <button id="profile-remove-avatar-btn" onclick="removeAvatar()" style="display:none;margin-top:6px;background:none;border:none;color:var(--red);font-size:.73rem;cursor:pointer;font-family:inherit;padding:0">Supprimer la photo</button>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div id="profile-stats-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-bottom:1.4rem"></div>
+    <!-- Formulaire édition -->
+    <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem">
+      <div class="field" style="margin-bottom:0">
+        <label>Nom complet</label>
+        <input id="profile-fullname-inp" type="text" placeholder="Prénom Nom" maxlength="100">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Adresse email</label>
+        <input id="profile-email-inp" type="email" placeholder="ton@email.ch" maxlength="200">
+      </div>
+    </div>
+    <!-- Consentement accès admin -->
+    <div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:.9rem 1rem;margin-bottom:.9rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.8rem">
+        <div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--tx);margin-bottom:.2rem">Accès support administrateur</div>
+          <div style="font-size:.73rem;color:var(--tx2);line-height:1.4" id="admin-access-desc">Désactivé — l'administrateur ne peut pas voir vos données.</div>
+          <div style="font-size:.68rem;color:var(--tx3);margin-top:.3rem" id="admin-access-date"></div>
+        </div>
+        <button id="admin-access-btn" onclick="toggleAdminAccess()" style="
+          flex-shrink:0;padding:.4rem .9rem;border-radius:8px;font-size:.78rem;font-weight:600;
+          cursor:pointer;font-family:inherit;border:1px solid rgba(255,255,255,.12);
+          background:rgba(255,255,255,.06);color:var(--tx2);transition:all .2s
+        ">Activer</button>
+      </div>
+    </div>
+    <div class="err-msg" id="profile-err" style="margin-bottom:.8rem"></div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end">
+      <button onclick="openChangePwdFromProfile()" style="background:rgba(255,255,255,.06);border:1px solid var(--glass-border);color:var(--tx2);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.85rem">Changer le MDP</button>
+      <button onclick="saveProfile()" style="background:transparent;color:var(--tx);border:1px solid var(--tx);padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;font-size:.85rem">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ FORGOT PASSWORD MODAL ═══════════════════ -->
+<div id="modal-forgot" class="pwd-modal">
+  <div class="pwd-modal-box">
+    <!-- Formulaire initial -->
+    <div id="forgot-form">
+      <h3>Mot de passe oublié</h3>
+      <p>Renseigne ton nom d'utilisateur et l'adresse email de ton compte pour recevoir un mot de passe temporaire.</p>
+      <div class="err-msg" id="forgot-err" style="margin-bottom:12px"></div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="forgot-username" placeholder="ton_pseudo" />
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>Adresse email du compte</label>
+        <input type="email" id="forgot-email" placeholder="ton@email.com" />
+      </div>
+      <div class="field" style="margin-bottom:16px">
+        <label>Message au support <span style="color:var(--tx2);font-weight:400">(optionnel)</span></label>
+        <textarea id="forgot-message" placeholder="Décris ta situation…" rows="3"></textarea>
+      </div>
+      <div class="pwd-modal-footer">
+        <button class="btn-sm" onclick="closeForgotModal()">Annuler</button>
+        <button class="btn-sm add" onclick="submitForgotReset()" style="background:transparent;color:var(--tx);border:1px solid var(--tx)">Envoyer</button>
+      </div>
+    </div>
+    <!-- Vue confirmation (après soumission) -->
+    <div id="forgot-chat" style="display:none">
+      <h3>Email envoyé</h3>
+      <p style="font-size:.9rem;color:#94a3b8;margin-bottom:20px;line-height:1.5">Un mot de passe temporaire a été envoyé à l'adresse email de ton compte.<br><br>Connecte-toi avec ce mot de passe, tu devras immédiatement en choisir un nouveau.</p>
+      <div class="pwd-modal-footer">
+        <button class="btn-sm add" onclick="closeForgotModal()" style="background:transparent;color:var(--tx);border:1px solid var(--tx)">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ADD GRADE MODAL ═══════════════════════ -->
+<div id="modal-add-grade" class="pwd-modal" onclick="if(event.target===this)closeAddGradeModal()">
+  <div class="pwd-modal-box" style="width:min(420px,100%)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem" id="modal-add-grade-title">Ajouter une note</h3>
+      <button onclick="closeAddGradeModal()" style="background:none;border:none;color:var(--tx2);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem">
+      <div class="field" style="margin-bottom:0">
+        <label>Nom du test</label>
+        <input id="ag-name" type="text" placeholder="ex: Examen final" maxlength="100">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="field" style="margin-bottom:0">
+          <label>Note (1–6)</label>
+          <input id="ag-value" type="number" placeholder="5.5" min="1" max="6" step="0.5">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Poids (%)</label>
+          <input id="ag-weight" type="number" placeholder="20" min="1" max="100">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Commentaire <span style="color:var(--tx2);font-weight:400">(optionnel)</span></label>
+        <input id="ag-comment" type="text" placeholder="ex: Bien préparé" maxlength="200">
+      </div>
+    </div>
+    <div class="err-msg" id="ag-err" style="margin-top:.8rem"></div>
+    <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.2rem">
+      <button onclick="closeAddGradeModal()" style="background:rgba(255,255,255,.06);border:1px solid var(--glass-border);color:var(--tx2);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.85rem">Annuler</button>
+      <button onclick="confirmAddGrade()" style="background:transparent;color:var(--tx);border:1px solid var(--tx);padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;font-size:.85rem">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ADD CG MODAL ══════════════════════════ -->
+<div id="modal-add-cg" class="pwd-modal" onclick="if(event.target===this)closeAddCGModal()">
+  <div class="pwd-modal-box" style="width:min(420px,100%)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem">
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem" id="modal-add-cg-title">Ajouter</h3>
+      <button onclick="closeAddCGModal()" style="background:none;border:none;color:var(--tx2);cursor:pointer;font-size:1.1rem;padding:.2rem .4rem">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem">
+      <div style="margin-bottom:0">
+        <div style="font-size:.73rem;color:var(--tx2);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Type</div>
+        <div class="cg-kind-group" id="cg-modal-kind-group">
+          <button type="button" class="cg-kind-btn active" data-kind="test"   onclick="setCGKind('test')">Test</button>
+          <button type="button" class="cg-kind-btn"        data-kind="small"  onclick="setCGKind('small')">Petit test</button>
+          <button type="button" class="cg-kind-btn"        data-kind="future" onclick="setCGKind('future')">À venir</button>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Nom</label>
+        <input id="cg-modal-name" type="text" placeholder="ex: Interrogation écrite" maxlength="100">
+      </div>
+      <!-- Champs points (test + petit test) -->
+      <div id="cg-modal-pts-row" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="field" style="margin-bottom:0">
+          <label>Points obtenus</label>
+          <input id="cg-modal-obt" type="number" placeholder="18" min="0" step="0.5">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Points totaux</label>
+          <input id="cg-modal-tot" type="number" placeholder="20" min="1" step="0.5">
+        </div>
+      </div>
+      <div class="field" id="cg-modal-comment-row" style="margin-bottom:0">
+        <label>Commentaire <span style="color:var(--tx2);font-weight:400">(optionnel)</span></label>
+        <input id="cg-modal-comment" type="text" placeholder="ex: Bien préparé" maxlength="200">
+      </div>
+    </div>
+    <div class="err-msg" id="cg-modal-err" style="margin-top:.8rem"></div>
+    <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.2rem">
+      <button onclick="closeAddCGModal()" style="background:rgba(255,255,255,.06);border:1px solid var(--glass-border);color:var(--tx2);padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.85rem">Annuler</button>
+      <button onclick="confirmAddCG()" style="background:transparent;color:var(--tx);border:1px solid var(--tx);padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600;font-size:.85rem">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CHANGE PASSWORD MODAL ═══════════════════ -->
+<div id="modal-change-pwd" class="pwd-modal">
+  <div class="pwd-modal-box">
+    <h3 id="change-pwd-title">Nouveau mot de passe requis</h3>
+    <p id="change-pwd-desc">Ton mot de passe a été réinitialisé. Tu dois choisir un nouveau mot de passe pour continuer.</p>
+    <div class="err-msg" id="change-pwd-err" style="margin-bottom:12px"></div>
+    <div class="field" id="change-pwd-current-row" style="margin-bottom:14px;display:none">
+      <label>Mot de passe actuel</label>
+      <input type="password" id="change-pwd-current" placeholder="Ton mot de passe actuel" />
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Nouveau mot de passe</label>
+      <input type="password" id="change-pwd-new" placeholder="Au moins 6 caractères" />
+    </div>
+    <div class="field" style="margin-bottom:16px">
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="change-pwd-confirm" placeholder="Répète le mot de passe" />
+    </div>
+    <div class="pwd-modal-footer">
+      <button class="btn-sm add" onclick="submitChangePassword()" style="background:transparent;color:var(--tx);border:1px solid var(--tx)">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ APP ════════════════════════════════════ -->
+<div id="app">
+  <header>
+    <span class="logo">Grade</span>
+    <button class="btn-burger" id="btn-burger" onclick="toggleBurger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="header-menu" id="header-menu">
+      <div class="filter-bar">
+        <div class="sel-wrap">
+          <select id="sel-year" onchange="onFilterChange()">
+            <option value="1">Année 1</option>
+            <option value="2">Année 2</option>
+            <option value="3">Année 3</option>
+            <option value="4">Année 4</option>
+          </select>
+        </div>
+        <div class="sel-wrap">
+          <select id="sel-trim" onchange="onFilterChange()">
+            <option value="1">Trimestre 1</option>
+            <option value="2">Trimestre 2</option>
+            <option value="3">Trimestre 3</option>
+            <option value="4">Trimestre 4</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-inp" id="search-inp" type="text" placeholder="Rechercher une matière…" oninput="onSearch()" />
+      </div>
+      <div class="header-right">
+        <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <a href="/agenda.html" class="btn-sm" style="text-decoration:none;display:inline-flex;align-items:center;gap:5px">Agenda</a>
+        <div class="test-btn-wrap">
+          <button class="btn-sm add" onclick="openTestModal()">
+            ＋ Test
+            <div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div>
+          </button>
+          <span id="upcoming-badge" class="upcoming-badge" style="display:none"></span>
+        </div>
+        <div class="avatar-wrap" id="avatar-wrap">
+          <button class="profile-avatar-btn" id="profile-btn" onclick="toggleAvatarMenu(event)" title="Mon compte">
+            <span id="avatar-initials">?</span>
+          </button>
+          <div class="avatar-menu" id="avatar-menu">
+            <button class="avatar-menu-item" onclick="openProfileModal();closeAvatarMenu()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Mon profil
+            </button>
+            <button class="avatar-menu-item" onclick="openTicketsModal();closeAvatarMenu()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Mes tickets
+            </button>
+            <button class="avatar-menu-item" onclick="openSupportModal();closeAvatarMenu()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Support / Bug
+            </button>
+            <div class="avatar-menu-sep"></div>
+            <button class="avatar-menu-item danger" onclick="logout()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Déconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Welcome header -->
+    <div class="welcome-header">
+      <p class="welcome-label" id="welcome-label">—</p>
+      <h1 class="welcome-title">Grade</h1>
+      <p class="welcome-sub">Suis tes résultats, anticipe tes examens et gère tes projets.</p>
+      <p class="welcome-clock" id="welcome-clock"></p>
+    </div>
+
+    <!-- Tableau de bord -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">Tableau de bord</div>
+        <div class="dash-actions">
+          <button class="btn-export-pdf" onclick="exportPDF()">
+            Exporter PDF
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <button class="btn-sm add btn-json-only" onclick="exportJSON()">
+            Exporter JSON
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <button class="btn-sm add btn-json-only" onclick="triggerImport()">
+            Importer JSON
+            <div class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          </button>
+          <input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
+        </div>
+      </div>
+      <div id="dash-progress"></div>
+      <div id="dash-badges"></div>
+      <div class="dash-grid" id="dash-stats"></div>
+      <div id="dash-status"></div>
+      <div class="cg-kind-group" id="charts-mode-toggle" style="display:none;max-width:280px;margin:1rem 0 .5rem">
+        <button type="button" class="cg-kind-btn active" data-mode="mat" onclick="setChartsMode('mat')">Informatique</button>
+        <button type="button" class="cg-kind-btn" data-mode="cg" onclick="setChartsMode('cg')">Culture Générale</button>
+      </div>
+      <div class="charts-grid" id="dash-charts" style="display:none">
+        <div class="chart-card">
+          <div class="chart-card-label">Évolution de la moyenne</div>
+          <div class="chart-wrap" id="chart-evolution-wrap"><canvas id="chart-evolution"></canvas></div>
+          <div class="chart-empty" id="chart-evolution-empty" style="display:none">Aucune note pour le moment</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-label" id="chart-subjects-label">Moyenne par matière</div>
+          <div class="chart-wrap" id="chart-subjects-wrap"><canvas id="chart-subjects"></canvas></div>
+          <div class="chart-empty" id="chart-subjects-empty" style="display:none">Aucune note pour le moment</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matières -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">
+          Informatique
+        </div>
+        <button class="btn-sm add" onclick="toggleAddSubject()">Ajouter une matière<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-subject-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom de la matière</label>
+          <input type="text" id="inp-subj-name" placeholder="ex: Mathématiques" />
+        </div>
+        <button class="btn-add" onclick="addSubject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="subjects-container">
+        <div class="empty-state">Aucune matière pour cette période</div>
+      </div>
+    </div>
+
+    <!-- Culture Générale -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">Culture Générale</div>
+        <button class="btn-sm add" onclick="toggleAddCGSubject()">Ajouter une matière<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-cg-subject-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom de la matière</label>
+          <input type="text" id="inp-cg-subj-name" placeholder="ex: Français" />
+        </div>
+        <button class="btn-add" onclick="addCGSubject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div class="cg-indicators">
+        <div class="cg-ind"><div class="cg-ind-label">Moy. S1</div><div class="cg-ind-val" id="cg-s1-avg">—</div><div class="cg-ind-status" id="cg-s1-status">—</div></div>
+        <div class="cg-ind"><div class="cg-ind-label">Moy. S2</div><div class="cg-ind-val" id="cg-s2-avg">—</div><div class="cg-ind-status" id="cg-s2-status">—</div></div>
+        <div class="cg-ind"><div class="cg-ind-label">Moyenne annuelle</div><div class="cg-ind-val" id="cg-yr-avg">—</div><div class="cg-ind-status" id="cg-yr-status">—</div></div>
+      </div>
+
+      <div id="cg-subjects-container">
+        <div class="empty-state">Aucune matière CG — ajoutez-en une ci-dessus</div>
+      </div>
+    </div>
+
+    <!-- Projets -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-title">
+          Projets par Périodes
+        </div>
+        <button class="btn-sm add" onclick="toggleAddProject()">Ajouter un projet<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div id="add-project-row" class="add-row" style="display:none">
+        <div class="fg">
+          <label>Nom du projet</label>
+          <input type="text" id="inp-proj-name" placeholder="ex: Projet Web" />
+        </div>
+        <div class="fg" style="max-width:130px">
+          <label>Périodes</label>
+          <input type="number" id="inp-proj-periods" placeholder="4" min="1" />
+        </div>
+        <button class="btn-add" id="btn-add-project" onclick="addProject()">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+
+      <div class="proj-summary">
+        <div class="stat"><div class="stat-val" id="p-total">0</div><div class="stat-lbl">Périodes totales</div></div>
+        <div class="stat"><div class="stat-val green" id="p-valid">0</div><div class="stat-lbl">Périodes validées</div></div>
+        <div class="stat"><div class="stat-val" id="p-pct">0%</div><div class="stat-lbl">Taux de réussite</div></div>
+      </div>
+      <div class="prog-track"><div class="prog-fill pf-r" id="p-bar" style="width:0%"></div></div>
+      <div class="prog-labels"><span id="p-status">—</span><span>Seuil : 80%</span></div>
+      <div id="p-msg"></div>
+      <div class="proj-list" id="projects-list"><div class="empty-state">Aucun projet pour cette année</div></div>
+    </div>
+
+    <!-- ── Section Évolution ──────────────────────────────────────────── -->
+    <div class="section" id="section-stats">
+      <div class="section-header" style="cursor:pointer" onclick="toggleStatsSection()">
+        <h2 class="section-title">Statistiques</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.78rem;color:var(--tx3)" id="stats-toggle-label">Afficher</span>
+          <svg id="stats-toggle-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .25s"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div id="stats-body" style="display:none">
+        <!-- Chiffres clés -->
+        <div id="sc-personal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px"></div>
+        <!-- Graphiques -->
+        <div class="stats-charts-grid">
+          <div class="stat-chart-card">
+            <div class="stat-chart-title">Progression par année</div>
+            <div class="stat-chart-wrap"><canvas id="sc-years-bar"></canvas></div>
+          </div>
+          <div class="stat-chart-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div class="stat-chart-title" style="margin-bottom:0">Radar matières — année en cours</div>
+              <div class="cg-kind-group" id="radar-mode-toggle" style="gap:4px">
+                <button type="button" class="cg-kind-btn active" data-mode="info" onclick="setRadarMode('info')">Info</button>
+                <button type="button" class="cg-kind-btn" data-mode="cg"   onclick="setRadarMode('cg')">CG</button>
+                <button type="button" class="cg-kind-btn" data-mode="both" onclick="setRadarMode('both')">Les deux</button>
+              </div>
+            </div>
+            <div class="stat-chart-wrap"><canvas id="sc-radar"></canvas></div>
+          </div>
+        </div>
+        <!-- Tableau récap formation -->
+        <div class="stat-chart-card" style="margin-top:18px">
+          <div class="stat-chart-title">Récapitulatif formation (4 ans)</div>
+          <div id="sc-summary-table" style="overflow-x:auto;margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer style="text-align:center;padding:24px 20px;font-size:.78rem;color:var(--tx3);border-top:1px solid var(--glass-border);margin-top:8px">
+    © 2026 Benjamin Rossetti — <a href="mailto:benjamin.rossetti08@gmail.com" style="color:var(--acc);text-decoration:none">benjamin.rossetti08@gmail.com</a>
+  </footer>
+</div>
+
+<!-- ── Modal : Ajouter un test ─────────────────────────────────── -->
+<div id="test-modal-overlay" style="
+  position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s
+" onclick="if(event.target===this)closeTestModal()">
+  <div id="test-modal-box" style="
+    background:#13132e;border:1px solid rgba(255,255,255,0.12);
+    border-radius:18px 18px 0 0;width:100%;max-width:460px;
+    max-height:88vh;overflow-y:auto;padding:24px 22px;
+    transform:translateY(20px);transition:transform .2s;
+    box-shadow:0 -4px 40px rgba(0,0,0,0.5)
+  ">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;
+        background:linear-gradient(135deg,#fff 0%,var(--acc) 100%);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        Ajouter un test
+      </h3>
+      <button onclick="closeTestModal()" style="
+        background:rgba(255,255,255,0.08);border:none;color:var(--tx2);
+        width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.95rem;
+        display:flex;align-items:center;justify-content:center
+      ">✕</button>
+    </div>
+
+    <!-- Type toggle -->
+    <div style="display:flex;background:rgba(255,255,255,.06);border-radius:10px;padding:3px;margin-bottom:16px;gap:3px">
+      <button id="tm-tab-mat" onclick="setTestTab('mat')" style="
+        flex:1;padding:8px;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:600;
+        cursor:pointer;transition:all .15s;background:var(--tx);color:var(--bg)
+      ">Informatique</button>
+      <button id="tm-tab-cg" onclick="setTestTab('cg')" style="
+        flex:1;padding:8px;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:600;
+        cursor:pointer;transition:all .15s;background:transparent;color:var(--tx2)
+      ">Culture Générale</button>
+    </div>
+
+    <div id="test-modal-error" style="display:none;color:#fb7185;font-size:.82rem;
+      background:rgba(251,113,133,0.1);border-radius:8px;padding:8px 12px;margin-bottom:12px"></div>
+
+    <!-- ── Matière fields ── -->
+    <div id="tm-fields-mat">
+      <div class="field">
+        <label>Matière</label>
+        <select id="tm-subject" class="tm-select"></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+        <div class="field">
+          <label>Date du test</label>
+          <input type="date" id="tm-date" style="
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+            color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+            outline:none;width:100%;font-family:inherit;transition:border-color .2s
+          " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        </div>
+        <div class="field">
+          <label>Heure (optionnel)</label>
+          <input type="time" id="tm-time" style="
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+            color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+            outline:none;width:100%;font-family:inherit;transition:border-color .2s
+          " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        </div>
+      </div>
+      <div class="field">
+        <label>Coefficient</label>
+        <input type="number" id="tm-weight" min="0.1" max="100" step="0.1" placeholder="ex: 1" style="
+          background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+          outline:none;width:100%;font-family:inherit;transition:border-color .2s
+        " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      </div>
+      <div class="field">
+        <label>Note (optionnel — à remplir après)</label>
+        <input type="number" id="tm-note" min="1" max="6" step="0.1" placeholder="Laisser vide si pas encore passé" style="
+          background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+          outline:none;width:100%;font-family:inherit;transition:border-color .2s
+        " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      </div>
+    </div>
+
+    <!-- ── Culture Générale fields ── -->
+    <div id="tm-fields-cg" style="display:none">
+      <div class="field">
+        <label>Matière CG</label>
+        <select id="tm-cg-subject" class="tm-select"></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>Semestre</label>
+          <select id="tm-cg-sem" class="tm-select">
+            <option value="1">Semestre 1</option>
+            <option value="2">Semestre 2</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <select id="tm-cg-type" onchange="updateCGTestFields()" class="tm-select">
+            <option value="test">Grand test</option>
+            <option value="petit">Petit test</option>
+            <option value="futur">Test à venir</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Nom du test</label>
+        <input type="text" id="tm-cg-name" placeholder="ex: Test 1 — Littérature" maxlength="100" style="
+          background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+          outline:none;width:100%;font-family:inherit;transition:border-color .2s
+        " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      </div>
+      <div id="tm-cg-points-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>Points obtenus</label>
+          <input type="number" id="tm-cg-obtained" min="0" step="0.5" placeholder="ex: 14" style="
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+            color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+            outline:none;width:100%;font-family:inherit;transition:border-color .2s
+          " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        </div>
+        <div class="field">
+          <label>Points totaux</label>
+          <input type="number" id="tm-cg-total" min="0.5" step="0.5" placeholder="ex: 20" style="
+            background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+            color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+            outline:none;width:100%;font-family:inherit;transition:border-color .2s
+          " onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submitTestModal()" style="width:100%;justify-content:center;margin-top:4px">
+      Enregistrer le test
+      <div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div>
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════
+// Theme
+// ════════════════════════════════════════════════════════════
+const SUN_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+function applyTheme(mode) {
+  const btn = document.getElementById('btn-theme');
+  if (mode === 'light') {
+    document.documentElement.classList.add('light');
+    if (btn) { btn.innerHTML = MOON_SVG; btn.title = 'Passer en mode sombre'; }
+  } else {
+    document.documentElement.classList.remove('light');
+    if (btn) { btn.innerHTML = SUN_SVG;  btn.title = 'Passer en mode clair'; }
+  }
+}
+
+function toggleBurger() {
+  document.getElementById('header-menu').classList.toggle('open');
+  document.getElementById('btn-burger').classList.toggle('open');
+}
+function closeBurger() {
+  document.getElementById('header-menu').classList.remove('open');
+  document.getElementById('btn-burger').classList.remove('open');
+}
+
+function toggleTheme() {
+  const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+  localStorage.setItem('theme', next);
+  applyTheme(next);
+}
+
+// ════════════════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════════════════
+const S = {
+  token:    localStorage.getItem('token') || '',
+  user:     localStorage.getItem('username') || '',
+  fullName: localStorage.getItem('fullName') || '',
+  avatar:   null,
+  year:     1,
+  trimester:1,
+  subjects: [],
+  details:  {},
+  projects: [],
+  expanded: null,
+  cg:        [],
+  cgExpanded: null,
+  search:   '',
+};
+
+// ════════════════════════════════════════════════════════════
+// API helpers
+// ════════════════════════════════════════════════════════════
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  const data = await r.json();
+  if (r.status === 401) { logout(); throw new Error(data.error || 'Session expirée'); }
+  if (!r.ok) throw new Error(data.error || 'Erreur serveur');
+  return data;
+}
+const GET    = p       => api('GET',    p);
+const POST   = (p, b)  => api('POST',   p, b);
+const PATCH  = (p, b)  => api('PATCH',  p, b);
+const DELETE = p       => api('DELETE', p);
+
+// ════════════════════════════════════════════════════════════
+// Auth
+// ════════════════════════════════════════════════════════════
+let isRegister = false;
+
+// ── Parallax mockup ──────────────────────────────────────────────────────────
+(function() {
+  let raf = null;
+  let tx = 0, ty = 0;
+  document.addEventListener('mousemove', e => {
+    const mockup = document.getElementById('app-mockup');
+    if (!mockup || !mockup.closest('#auth-overlay') || document.getElementById('auth-overlay').style.display === 'none') return;
+    const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx;
+    const dy = (e.clientY - cy) / cy;
+    tx = dx * 10; ty = dy * -8;
+    if (!raf) raf = requestAnimationFrame(() => {
+      mockup.style.transform = `perspective(900px) rotateY(${tx}deg) rotateX(${ty}deg) translateZ(10px)`;
+      raf = null;
+    });
+  });
+  document.addEventListener('mouseleave', () => {
+    const mockup = document.getElementById('app-mockup');
+    if (mockup) mockup.style.transform = 'perspective(900px) rotateY(0deg) rotateX(0deg) translateZ(0)';
+  });
+})();
+
+function toggleAuthMode() {
+  isRegister = !isRegister;
+  document.getElementById('auth-title').textContent     = isRegister ? 'Inscription' : 'Connexion';
+  document.getElementById('auth-sub').textContent       = isRegister ? 'Créez votre compte' : 'Accédez à vos notes';
+  document.getElementById('auth-btn-text').textContent  = isRegister ? 'S\'inscrire' : 'Se connecter';
+  document.getElementById('auth-switch-text').textContent = isRegister ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+  document.getElementById('auth-switch-link').textContent = isRegister ? 'Se connecter' : 'S\'inscrire';
+  document.getElementById('field-email').style.display = isRegister ? '' : 'none';
+  showAuthErr('');
+}
+
+function showAuthErr(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
+  if (msg) showToast(msg, 'error');
+}
+
+let _activeToast = null;
+let _activeToastTimer = null;
+function showToast(msg, type = 'success', duration = 4000) {
+  if (_activeToast) {
+    clearTimeout(_activeToastTimer);
+    try { _activeToast.remove(); } catch(e){}
+    _activeToast = null;
+  }
+  const color  = type === 'success' ? '#34d399' : type === 'info' ? '#a78bfa' : '#fb7185';
+  const border = type === 'success' ? 'rgba(52,211,153,.5)' : type === 'info' ? 'rgba(167,139,250,.5)' : 'rgba(251,113,133,.5)';
+  const icon   = type === 'success' ? '✓' : type === 'info' ? 'ℹ' : '✕';
+  const el = document.createElement('div');
+  el.setAttribute('style',
+    'position:fixed;bottom:24px;right:24px;z-index:99999;' +
+    'background:rgba(10,10,26,0.98);' +
+    'border:1px solid ' + border + ';' +
+    'border-radius:14px;padding:14px 20px;' +
+    'display:flex;align-items:center;gap:12px;' +
+    'max-width:320px;min-width:200px;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,0.8);' +
+    'font-size:14px;font-family:sans-serif;' +
+    'color:#f1f5f9;font-weight:500;' +
+    'line-height:1.4;' +
+    'animation:toastIn .3s ease both;'
+  );
+  el.innerHTML = '<span style="color:' + color + ';font-size:16px;flex-shrink:0">' + icon + '</span>' +
+                 '<span>' + msg + '</span>';
+  document.body.appendChild(el);
+  document.getElementById('scroll-top')?.classList.add('toast-push');
+  _activeToast = el;
+  _activeToastTimer = setTimeout(() => {
+    try { el.remove(); } catch(e){}
+    _activeToast = null;
+    document.getElementById('scroll-top')?.classList.remove('toast-push');
+  }, duration);
+}
+
+
+async function submitAuth() {
+  const username = document.getElementById('inp-username').value.trim();
+  const password = document.getElementById('inp-password').value;
+  const email    = document.getElementById('inp-email').value.trim();
+
+  if (!username)                         return showAuthErr('Le nom d\'utilisateur est requis');
+  if (!password)                         return showAuthErr('Le mot de passe est requis');
+  if (isRegister && password.length < 6) return showAuthErr('Le mot de passe doit contenir au moins 6 caractères');
+  if (isRegister && !email)             return showAuthErr('L\'adresse email est requise');
+  if (isRegister && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                                         return showAuthErr('Adresse email invalide');
+  showAuthErr('');
+
+  try {
+    const endpoint = isRegister ? '/api/register' : '/api/login';
+    const body     = isRegister ? { username, email, password } : { username, password };
+    const data = await api('POST', endpoint, body);
+    S.token    = data.token;
+    S.user     = data.username;
+    S.fullName = data.full_name || '';
+    localStorage.setItem('token',    S.token);
+    localStorage.setItem('username', S.user);
+    localStorage.setItem('fullName', S.fullName);
+    if (data.must_change_password) {
+      document.getElementById('auth-overlay').style.display = 'none';
+      openChangePwdModal(true);
+      return;
+    }
+    const welcome = isRegister
+      ? `Compte créé ! Bienvenue, ${data.username}`
+      : `Bon retour, ${data.username} !`;
+    showApp();
+    setTimeout(() => showToast(welcome, 'success'), 350);
+  } catch (e) {
+    showAuthErr(e.message);
+  }
+}
+
+let _forgotPollInterval = null;
+let _forgotTicketId = null;
+
+function openForgotModal() {
+  document.getElementById('forgot-username').value  = '';
+  document.getElementById('forgot-message').value   = '';
+  document.getElementById('forgot-err').textContent = '';
+  document.getElementById('forgot-form').style.display = '';
+  document.getElementById('forgot-chat').style.display  = 'none';
+  document.getElementById('modal-forgot').classList.add('open');
+}
+function closeForgotModal() {
+  document.getElementById('modal-forgot').classList.remove('open');
+  if (_forgotPollInterval) { clearInterval(_forgotPollInterval); _forgotPollInterval = null; }
+  _forgotTicketId = null;
+}
+
+async function submitForgotReset() {
+  const username = document.getElementById('forgot-username').value.trim();
+  const email    = document.getElementById('forgot-email').value.trim();
+  const message  = document.getElementById('forgot-message').value.trim() || 'Réinitialisation de mot de passe.';
+  const errEl    = document.getElementById('forgot-err');
+  errEl.textContent = '';
+  if (!username) { errEl.textContent = 'Le nom d\'utilisateur est requis.'; return; }
+  if (!email)    { errEl.textContent = 'L\'adresse email est requise.'; return; }
+  try {
+    const data = await api('POST', '/api/request-password-reset', { username, email, message });
+    _forgotTicketId = data.ticket_id;
+    document.getElementById('forgot-form').style.display = 'none';
+    document.getElementById('forgot-chat').style.display  = '';
+    _startForgotPolling();
+  } catch (e) {
+    errEl.textContent = e.message || 'Erreur lors de la demande.';
+  }
+}
+
+function _startForgotPolling() {
+  _pollForgotMessages();
+  _forgotPollInterval = setInterval(_pollForgotMessages, 4000);
+}
+
+async function _pollForgotMessages() {
+  if (!_forgotTicketId) return;
+  try {
+    const msgs = await api('GET', `/api/reset-messages/${_forgotTicketId}`);
+    const el = document.getElementById('forgot-chat-messages');
+    if (!msgs.length) return;
+    el.innerHTML = '';
+    msgs.forEach(m => {
+      const div = document.createElement('div');
+      const isAdmin = m.is_admin;
+      div.style.cssText = `display:flex;flex-direction:column;align-items:${isAdmin ? 'flex-start' : 'flex-end'}`;
+      const bg     = isAdmin ? 'rgba(124,58,237,.2)'  : 'rgba(255,255,255,.07)';
+      const border = isAdmin ? 'rgba(124,58,237,.35)' : 'rgba(255,255,255,.1)';
+      const label  = isAdmin ? '🛡 Support'           : 'Moi';
+      const pwdMatch = m.message.match(/Mot de passe temporaire : (\S+)/);
+      const copyBtn = pwdMatch
+        ? `<button onclick="navigator.clipboard.writeText('${pwdMatch[1]}').then(()=>this.textContent='Copié !').catch(()=>{})" style="margin-top:6px;padding:5px 12px;background:transparent;color:var(--tx);border:1px solid var(--tx);border-radius:7px;font-size:.78rem;cursor:pointer;align-self:flex-start">Copier le mot de passe</button>`
+        : '';
+      div.innerHTML = `<div style="font-size:.7rem;color:#94a3b8;margin-bottom:3px">${label}</div>`
+        + `<div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:8px 12px;max-width:85%;font-size:.88rem;white-space:pre-wrap;word-break:break-word">${m.message.replace(/</g,'&lt;')}</div>`
+        + copyBtn;
+      el.appendChild(div);
+    });
+    el.scrollTop = el.scrollHeight;
+  } catch (_) {}
+}
+
+async function submitChangePassword() {
+  const currentEl  = document.getElementById('change-pwd-current');
+  const newEl      = document.getElementById('change-pwd-new');
+  const confirmEl  = document.getElementById('change-pwd-confirm');
+  const currentPwd = currentEl.value;
+  const newPwd     = newEl.value;
+  const confirmPwd = confirmEl.value;
+  const errEl      = document.getElementById('change-pwd-err');
+  const red = '1px solid var(--red)';
+  const def = '1px solid rgba(255,255,255,.12)';
+  currentEl.style.border = def;
+  newEl.style.border     = def;
+  confirmEl.style.border = def;
+  errEl.textContent = '';
+  if (!_changePwdForced && !currentPwd) {
+    errEl.textContent = 'Le mot de passe actuel est requis.';
+    currentEl.style.border = red;
+    return;
+  }
+  if (newPwd.length < 6) {
+    errEl.textContent = 'Au moins 6 caractères requis.';
+    newEl.style.border = red;
+    return;
+  }
+  if (newPwd !== confirmPwd) {
+    errEl.textContent = 'Les mots de passe ne correspondent pas.';
+    newEl.style.border     = red;
+    confirmEl.style.border = red;
+    return;
+  }
+  const body = { new_password: newPwd };
+  if (!_changePwdForced) body.current_password = currentPwd;
+  try {
+    await api('POST', '/api/change-password', body);
+    document.getElementById('modal-change-pwd').classList.remove('open');
+    if (_changePwdForced) showApp();
+    setTimeout(() => showToast('Mot de passe mis à jour !', 'success'), _changePwdForced ? 350 : 0);
+  } catch (e) {
+    errEl.textContent = e.message || 'Erreur lors du changement de mot de passe.';
+    if (!_changePwdForced) currentEl.style.border = red;
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// Profile
+// ════════════════════════════════════════════════════════════
+function avatarColor(username) {
+  const colors = ['#7c3aed','#2563eb','#0891b2','#059669','#d97706','#dc2626','#db2777'];
+  let h = 0;
+  for (let i = 0; i < (username||'').length; i++) h = (username||'').charCodeAt(i) + ((h << 5) - h);
+  return colors[Math.abs(h) % colors.length];
+}
+function avatarInitials(fullName, username) {
+  const str = (fullName||'').trim() || (username||'?');
+  const parts = str.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return str.slice(0, 2).toUpperCase();
+}
+function updateHeaderAvatar(fullName, username, avatarUrl) {
+  const btn = document.getElementById('profile-btn');
+  if (!btn) return;
+  const span = document.getElementById('avatar-initials');
+  if (avatarUrl) {
+    btn.style.background = 'transparent';
+    btn.style.padding = '0';
+    span.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    btn.style.background = avatarColor(username);
+    btn.style.padding = '';
+    span.textContent = avatarInitials(fullName, username);
+  }
+}
+function toggleAvatarMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('avatar-menu');
+  const btn  = document.getElementById('profile-btn');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('active', open);
+}
+function closeAvatarMenu() {
+  document.getElementById('avatar-menu').classList.remove('open');
+  document.getElementById('profile-btn').classList.remove('active');
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('avatar-wrap');
+  if (wrap && !wrap.contains(e.target)) closeAvatarMenu();
+});
+
+async function openProfileModal() {
+  closeAvatarMenu();
+  document.getElementById('profile-err').style.display = 'none';
+  document.getElementById('modal-profile').classList.add('open');
+  try {
+    const d = await GET('/api/profile');
+    _renderProfile(d);
+  } catch(e) {
+    showToast('Erreur chargement profil', 'error');
+  }
+}
+function closeProfileModal() {
+  document.getElementById('modal-profile').classList.remove('open');
+}
+function _renderProfile(d) {
+  const color    = avatarColor(d.username);
+  const initials = avatarInitials(d.full_name, d.username);
+  const avEl = document.getElementById('profile-avatar-large');
+  const removeBtn = document.getElementById('profile-remove-avatar-btn');
+  if (d.avatar) {
+    avEl.style.background = 'transparent';
+    avEl.innerHTML = `<img src="${d.avatar}" style="width:100%;height:100%;object-fit:cover">`;
+    removeBtn.style.display = 'inline';
+  } else {
+    avEl.style.background = color;
+    avEl.textContent = initials;
+    removeBtn.style.display = 'none';
+  }
+
+  document.getElementById('profile-username-display').textContent = d.username;
+  const roleEl = document.getElementById('profile-role-display');
+  roleEl.textContent = d.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+  roleEl.style.color = d.role === 'admin' ? 'var(--acc)' : 'var(--tx2)';
+
+  const sinceDate  = d.created_at ? new Date(d.created_at.replace(' ','T') + 'Z').toLocaleDateString('fr-CH') : '—';
+  const lastLogin  = d.last_login  ? new Date(d.last_login.replace(' ','T')  + 'Z').toLocaleString('fr-CH', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Jamais';
+  document.getElementById('profile-since-display').textContent = `Membre depuis le ${sinceDate} · Dernière connexion : ${lastLogin}`;
+
+  const s = d.stats;
+  const avg = s.global_avg !== null ? (+s.global_avg).toFixed(2) : '—';
+  const avgColor = s.global_avg === null ? 'var(--tx)' : +s.global_avg >= 4 ? 'var(--green)' : +s.global_avg >= 3.5 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('profile-stats-grid').innerHTML = [
+    { label: 'Moyenne globale', value: avg, color: avgColor },
+    { label: 'Informatique',     value: s.nb_subjects  },
+    { label: 'Notes saisies',   value: s.nb_grades    },
+    { label: 'Tests CG',        value: s.nb_cg_tests  },
+    { label: 'Projets',         value: s.nb_projects  },
+  ].map(st => `<div class="profile-stat"><div class="profile-stat-label">${st.label}</div><div class="profile-stat-value" style="color:${st.color||'var(--tx)'}">${st.value}</div></div>`).join('');
+
+  document.getElementById('profile-fullname-inp').value = d.full_name || '';
+  document.getElementById('profile-email-inp').value    = d.email || '';
+  _renderAdminAccessUI(d.allow_admin_view, d.admin_view_granted_at);
+}
+
+function _renderAdminAccessUI(allowed, grantedAt) {
+  const desc = document.getElementById('admin-access-desc');
+  const date = document.getElementById('admin-access-date');
+  const btn  = document.getElementById('admin-access-btn');
+  if (!desc) return;
+  if (allowed) {
+    desc.textContent = 'Activé — l\'administrateur peut consulter vos notes et projets à des fins de support.';
+    desc.style.color = 'var(--green)';
+    btn.textContent = 'Révoquer';
+    btn.style.background = 'rgba(251,113,133,.1)';
+    btn.style.borderColor = 'rgba(251,113,133,.25)';
+    btn.style.color = 'var(--red)';
+    if (grantedAt) date.textContent = 'Accordé le ' + new Date(grantedAt).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  } else {
+    desc.textContent = 'Désactivé — l\'administrateur ne peut pas voir vos données.';
+    desc.style.color = 'var(--tx2)';
+    btn.textContent = 'Activer';
+    btn.style.background = 'rgba(255,255,255,.06)';
+    btn.style.borderColor = 'rgba(255,255,255,.12)';
+    btn.style.color = 'var(--tx2)';
+    date.textContent = '';
+  }
+}
+
+async function toggleAdminAccess() {
+  try {
+    const r = await PATCH('/api/profile/admin-access', {});
+    _renderAdminAccessUI(r.allow_admin_view, r.admin_view_granted_at);
+    showToast(r.allow_admin_view ? 'Accès admin accordé' : 'Accès admin révoqué');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+async function saveProfile() {
+  const full_name = document.getElementById('profile-fullname-inp').value.trim();
+  const email     = document.getElementById('profile-email-inp').value.trim();
+  const errEl     = document.getElementById('profile-err');
+  errEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` },
+      body: JSON.stringify({ full_name, email }),
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error; errEl.style.display = 'block'; return; }
+    S.fullName = full_name;
+    localStorage.setItem('fullName', full_name);
+    updateHeaderAvatar(full_name, S.user, S.avatar);
+    showToast('Profil mis à jour', 'success');
+    closeProfileModal();
+  } catch(e) {
+    errEl.textContent = 'Erreur réseau'; errEl.style.display = 'block';
+  }
+}
+async function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const base64 = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const ratio = Math.min(img.width, img.height);
+      const sx = (img.width  - ratio) / 2;
+      const sy = (img.height - ratio) / 2;
+      ctx.drawImage(img, sx, sy, ratio, ratio, 0, 0, size, size);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+  try {
+    const r = await fetch('/api/profile/avatar', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` },
+      body: JSON.stringify({ avatar: base64 }),
+    });
+    const d = await r.json();
+    if (!r.ok) { showToast(d.error || 'Erreur upload', 'error'); return; }
+    S.avatar = base64;
+    const avEl = document.getElementById('profile-avatar-large');
+    avEl.style.background = 'transparent';
+    avEl.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover">`;
+    document.getElementById('profile-remove-avatar-btn').style.display = 'inline';
+    updateHeaderAvatar(S.fullName, S.user, base64);
+    showToast('Photo de profil mise à jour', 'success');
+  } catch { showToast('Erreur réseau', 'error'); }
+}
+async function removeAvatar() {
+  try {
+    const r = await fetch('/api/profile/avatar', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` },
+      body: JSON.stringify({ avatar: null }),
+    });
+    if (!r.ok) { showToast('Erreur suppression', 'error'); return; }
+    S.avatar = null;
+    const avEl = document.getElementById('profile-avatar-large');
+    avEl.style.background = avatarColor(S.user);
+    avEl.textContent = avatarInitials(S.fullName, S.user);
+    document.getElementById('profile-remove-avatar-btn').style.display = 'none';
+    updateHeaderAvatar(S.fullName, S.user, null);
+    showToast('Photo supprimée', 'success');
+  } catch { showToast('Erreur réseau', 'error'); }
+}
+function openChangePwdFromProfile() {
+  closeProfileModal();
+  openChangePwdModal(false);
+}
+
+let _changePwdForced = false;
+function openChangePwdModal(forced) {
+  _changePwdForced = forced;
+  const currentRow = document.getElementById('change-pwd-current-row');
+  const title      = document.getElementById('change-pwd-title');
+  const desc       = document.getElementById('change-pwd-desc');
+  currentRow.style.display = forced ? 'none' : '';
+  title.textContent = forced ? 'Nouveau mot de passe requis' : 'Changer le mot de passe';
+  desc.textContent  = forced
+    ? 'Ton mot de passe a été réinitialisé. Tu dois choisir un nouveau mot de passe pour continuer.'
+    : 'Saisis ton mot de passe actuel pour en définir un nouveau.';
+  document.getElementById('change-pwd-current').value  = '';
+  document.getElementById('change-pwd-new').value      = '';
+  document.getElementById('change-pwd-confirm').value  = '';
+  document.getElementById('change-pwd-err').textContent = '';
+  document.getElementById('modal-change-pwd').classList.add('open');
+}
+
+// ════════════════════════════════════════════════════════════
+// App boot
+// ════════════════════════════════════════════════════════════
+function startClock() {
+  const el = document.getElementById('welcome-clock');
+  if (!el) return;
+  const tick = () => {
+    const now = new Date();
+    const date = now.toLocaleDateString('fr-CH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const time = now.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    el.textContent = `${date} — ${time}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+let _appSocket = null;
+let _statusInterval = null;
+
+function showApp() {
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display          = 'flex';
+  document.getElementById('welcome-label').textContent = `Bienvenue, ${S.user} — Formation 4 ans`;
+  updateHeaderAvatar(S.fullName || '', S.user);
+  startClock();
+  loadAll();
+  if (_appSocket) _appSocket.disconnect();
+  _appSocket = io({ auth: { token: S.token } });
+  _appSocket.on('force-logout', reason => {
+    logout();
+    showToast(reason === 'deleted' ? 'Votre compte a été supprimé.' : 'Votre compte a été banni.', 'error', 5000);
+  });
+  _appSocket.on('role-changed', ({ role }) => {
+    showToast('Votre rôle a changé. Reconnexion requise.', 'info', 5000);
+    setTimeout(logout, 1500);
+  });
+  _appSocket.on('ticket-updated', ({ id, statut }) => {
+    const idx = myTicketsCache.findIndex(t => t.id === id);
+    if (idx !== -1) {
+      myTicketsCache[idx].statut = statut;
+      const ov = document.getElementById('tickets-overlay');
+      if (ov && ov.style.opacity === '1') renderMyTicketsList(document.getElementById('my-tickets-list'));
+      showToast(`Ticket #${id} ${statut === 'fermé' ? 'fermé' : 'rouvert'} par l'admin.`, 'info', 4000);
+    }
+  });
+  _appSocket.on('ticket-deleted', ({ id }) => {
+    myTicketsCache = myTicketsCache.filter(t => t.id !== id);
+    const ov = document.getElementById('tickets-overlay');
+    if (ov && ov.style.opacity === '1') renderMyTicketsList(document.getElementById('my-tickets-list'));
+    showToast(`Ticket #${id} supprimé par l'admin.`, 'info', 4000);
+  });
+  GET('/api/profile').then(d => {
+    if (d.avatar) { S.avatar = d.avatar; updateHeaderAvatar(S.fullName, S.user, d.avatar); }
+  }).catch(() => {});
+  if (_statusInterval) clearInterval(_statusInterval);
+  _statusInterval = setInterval(() => {
+    if (!S.token) return;
+    fetch('/api/ping', { headers: { Authorization: `Bearer ${S.token}` } })
+      .then(r => { if (r.status === 401) logout(); })
+      .catch(() => {});
+  }, 8000);
+}
+
+function logout() {
+  S.token = ''; S.user = ''; S.fullName = '';
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  localStorage.removeItem('fullName');
+  if (_statusInterval) { clearInterval(_statusInterval); _statusInterval = null; }
+  if (_appSocket) { _appSocket.disconnect(); _appSocket = null; }
+  document.getElementById('app').style.display          = 'none';
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+
+async function loadAll() {
+  const qs = `?year=${S.year}&trimester=${S.trimester}`;
+  try {
+    [S.subjects, S.projects] = await Promise.all([
+      GET(`/api/subjects${qs}`),
+      GET(`/api/projects${qs}`),
+    ]);
+    S.details = {};
+    await Promise.all(S.subjects.map(s => loadSubjectDetail(s.id)));
+    renderSubjects();
+    renderProjects();
+  } catch (e) {
+    if (e.message.includes('authentifi') || e.message.includes('Token')) logout();
+  }
+  try {
+    const raw = await GET(`/api/cg?year=${S.year}`);
+    S.cg = Array.isArray(raw) ? raw : [];
+  } catch { S.cg = []; }
+  renderCG();
+  renderCharts();
+  // Badge tests à venir (dans les 3 prochains jours)
+  try {
+    const tests = await GET('/api/tests-upcoming');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const soon = tests.filter(t => {
+      if (!t.date_test || t.note != null) return false;
+      const d = new Date(t.date_test + 'T00:00:00');
+      const diff = (d - today) / 86400000;
+      return diff >= 0 && diff <= 3;
+    });
+    const badge = document.getElementById('upcoming-badge');
+    if (badge) {
+      if (soon.length) { badge.textContent = soon.length; badge.style.display = 'flex'; }
+      else badge.style.display = 'none';
+    }
+  } catch {}
+}
+
+async function loadSubjectDetail(id) {
+  try {
+    S.details[id] = await GET(`/api/subjects/${id}/detail`);
+  } catch {
+    S.details[id] = { grades: [], futures: [] };
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Filters
+// ════════════════════════════════════════════════════════════
+function onFilterChange() {
+  S.year      = +document.getElementById('sel-year').value;
+  S.trimester = +document.getElementById('sel-trim').value;
+  S.expanded  = null;
+  S.search    = '';
+  document.getElementById('search-inp').value = '';
+  closeBurger();
+  _statsLoaded = false;
+  const statsBody = document.getElementById('stats-body');
+  if (statsBody && statsBody.style.display !== 'none') renderStatsSection();
+  loadAll();
+}
+
+function onSearch() {
+  S.search = document.getElementById('search-inp').value.trim().toLowerCase();
+  renderSubjects();
+  renderCG();
+}
+
+// ════════════════════════════════════════════════════════════
+// Grade math
+// ════════════════════════════════════════════════════════════
+function calcSubject(grades, futures, target = 4.0) {
+  // Futures with a note are already done — count them like grades
+  const done     = futures.filter(f => f.note != null && f.note !== '');
+  const upcoming = futures.filter(f => f.note == null || f.note === '');
+
+  const curSum = grades.reduce((s, g) => s + g.value * g.weight, 0)
+               + done.reduce((s, f) => s + +f.note * f.weight, 0);
+  const curW   = grades.reduce((s, g) => s + g.weight, 0)
+               + done.reduce((s, f) => s + f.weight, 0);
+  const futW   = upcoming.reduce((s, f) => s + f.weight, 0);
+  const totalW = curW + futW;
+
+  const avg = curW > 0 ? curSum / curW : null;
+
+  if (futW === 0) {
+    if (curW === 0) return { avg: null, minGrade: null, status: 'none', totalW: 0 };
+    return { avg, minGrade: null, status: avg >= target ? 'passed' : 'failed', totalW };
+  }
+
+  const minGrade = (target * totalW - curSum) / futW;
+  const status   = minGrade <= 1 ? 'assured' : minGrade > 6 ? 'impossible' : 'possible';
+  return { avg, minGrade, status, totalW, curW, futW };
+}
+
+// ════════════════════════════════════════════════════════════
+// Subjects render
+// ════════════════════════════════════════════════════════════
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function renderSubjects() {
+  const el = document.getElementById('subjects-container');
+  const list = S.search
+    ? S.subjects.filter(s => s.name.toLowerCase().includes(S.search))
+    : S.subjects;
+  if (!S.subjects.length) {
+    el.innerHTML = '<div class="empty-state">Aucune matière — ajoutez-en une ci-dessus</div>';
+  } else if (!list.length) {
+    el.innerHTML = `<div class="empty-state">Aucune matière ne correspond à "<strong>${esc(S.search)}</strong>"</div>`;
+  } else {
+    el.innerHTML = list.map(s => renderSubjectCard(s)).join('');
+  }
+  renderDashboard();
+}
+
+function renderSubjectCard(s) {
+  const d       = S.details[s.id] || { grades: [], futures: [] };
+  const target  = s.target || 4.0;
+  const calc    = calcSubject(d.grades, d.futures, target);
+  const isOpen  = S.expanded === s.id;
+
+  let avgTxt = '—', avgCls = '', badgeTxt = 'Aucune note', badgeCls = 'badge-n';
+  if (calc.avg !== null) {
+    avgTxt = calc.avg.toFixed(2);
+    if      (calc.avg >= 4)   { avgCls = 'green';  badgeTxt = 'Réussi';       badgeCls = 'badge-g'; }
+    else if (calc.avg >= 3.5) { avgCls = 'orange'; badgeTxt = 'Limite';       badgeCls = 'badge-o'; }
+    else                      { avgCls = 'red';    badgeTxt = 'Insuffisant';  badgeCls = 'badge-r'; }
+  }
+
+  const body = isOpen ? renderSubjectBody(s.id, d, calc, target) : '';
+
+  const barPct   = calc.avg !== null ? Math.min(((calc.avg - 1) / 5) * 100, 100).toFixed(1) : 0;
+  const barColor = avgCls === 'green' ? 'var(--green)' : avgCls === 'orange' ? 'var(--orange)' : avgCls === 'red' ? 'var(--red)' : 'rgba(255,255,255,.15)';
+
+  return `<div class="subject-card" id="sc-${s.id}">
+    <div class="subject-header" onclick="toggleSubject(${s.id})">
+      <span class="subject-name" id="sname-${s.id}">${esc(s.name)}</span>
+      <span class="subject-avg ${avgCls}">${avgTxt}</span>
+      <span class="subject-badge ${badgeCls}">${badgeTxt}</span>
+      <button class="btn-edit" onclick="event.stopPropagation();startEditSubject(${s.id})" title="Renommer">✎</button>
+      <button class="btn-del-sub" onclick="event.stopPropagation();deleteSubject(${s.id})" title="Supprimer">🗑</button>
+      <span class="chevron ${isOpen ? 'open' : ''}">▼</span>
+    </div>
+    <div class="subject-progress"><div class="subject-progress-fill" style="width:${barPct}%;background:${barColor};box-shadow:0 0 6px ${barColor}40"></div></div>
+    <div class="subject-body ${isOpen ? 'open' : ''}" id="sb-${s.id}">${body}</div>
+  </div>`;
+}
+
+function renderSubjectBody(sid, d, calc, target = 4.0) {
+  const totalW = (d.grades.reduce((s,g)=>s+g.weight,0) + d.futures.reduce((s,f)=>s+f.weight,0));
+  const warnCls = Math.abs(totalW - 100) < 0.01 ? 'ww-ok' : 'ww-err';
+  const warnTxt = Math.abs(totalW - 100) < 0.01
+    ? '✓ Poids total : 100%'
+    : `⚠ Poids total : ${totalW.toFixed(1)}% (doit être 100%)`;
+
+  const gradeRows = d.grades.length
+    ? d.grades.map(g => {
+        const c   = g.value >= 4 ? 'green' : g.value >= 3.5 ? 'orange' : 'red';
+        const cmt = g.comment || '';
+        const cmtHtml = `<span id="gcmt-${sid}-${g.id}" data-comment="${esc(cmt)}"
+          class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+          onclick="editCommentInline('gcmt-${sid}-${g.id}','grade',${g.id},${sid})"
+          >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+        return `<div class="mini-item" id="gitem-${sid}-${g.id}">
+          <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(g.name)}${cmtHtml}</span>
+          <span class="mi-weight">${g.weight}%</span>
+          <span class="mi-grade ${c}">${g.value.toFixed(1)}</span>
+          <button class="btn-edit" onclick="startEditGrade(${sid},${g.id})" title="Modifier">✎</button>
+          <button class="btn-x" onclick="deleteGrade(${sid},${g.id})">✕</button>
+        </div>`;
+      }).join('')
+    : '<div class="empty-mini">Aucune note</div>';
+
+  const futureRows = d.futures.length
+    ? d.futures.map(f => {
+        const hasNote = f.note != null && f.note !== '';
+        const noteVal = hasNote ? +f.note : null;
+        const noteCls = noteVal !== null ? (noteVal >= 4 ? 'green' : noteVal >= 3.5 ? 'orange' : 'red') : '';
+        const noteSpan = hasNote ? `<span class="mi-grade ${noteCls}">${noteVal.toFixed(1)}</span>` : '';
+        const dateSpan = f.date_test ? `<span class="mi-date" style="font-size:.72rem;color:var(--tx2);margin-left:.3rem">${f.date_test}</span>` : '';
+        const doneCls  = hasNote ? ' future-done' : '';
+        return `<div class="mini-item${doneCls}" id="fitem-${sid}-${f.id}">
+          <span class="mi-name">${esc(f.name)}${dateSpan}</span>
+          <span class="mi-weight">${f.weight}%</span>
+          ${noteSpan}
+          <button class="btn-edit" onclick="startEditFuture(${sid},${f.id})" title="Modifier">✎</button>
+          <button class="btn-x" onclick="deleteFuture(${sid},${f.id})">✕</button>
+        </div>`;
+      }).join('')
+    : '<div class="empty-mini">Aucun test planifié</div>';
+
+  const pct    = calc.avg !== null ? Math.min(calc.avg / target * 100, 100) : 0;
+  const barCls = calc.avg === null ? 'bar-r' : calc.avg >= target ? 'bar-g' : calc.avg >= target - 0.5 ? 'bar-o' : 'bar-r';
+  const objRow = `<div class="obj-row">
+    <span class="obj-label">Objectif</span>
+    <input type="number" class="obj-inp" value="${target}" min="1" max="6" step="0.5"
+      onchange="setSubjectTarget(${sid},+this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()" />
+    <div class="obj-bar-wrap"><div class="obj-bar-fill ${barCls}" style="width:${pct.toFixed(1)}%"></div></div>
+    <span class="obj-info">${calc.avg !== null ? calc.avg.toFixed(2) : '—'} / <strong>${target}</strong></span>
+  </div>`;
+
+  const minBox = renderMinGradeBox(calc, d, target);
+
+  return `
+  <div class="weight-warn ${warnCls}">${warnTxt}</div>
+  ${objRow}
+  <div class="sub-sections" style="margin-top:12px">
+    <div>
+      <div class="sub-sec-title">Notes obtenues</div>
+      <div class="mini-list">${gradeRows}</div>
+      <div class="mini-add">
+        <button class="btn-mini" onclick="openAddGradeModal(${sid})">Ajouter une note<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+      </div>
+    </div>
+    <div>
+      <div class="sub-sec-title">Tests à venir</div>
+      <div class="mini-list">${futureRows}</div>
+      <div class="mini-add">
+        <button class="btn-mini" onclick="openTestModal(${sid})">
+          ＋ Test
+          <div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div>
+        </button>
+      </div>
+    </div>
+    ${minBox}
+  </div>`;
+}
+
+function renderMinGradeBox(calc, d, target = 4.0) {
+  if (calc.status === 'none') return '';
+
+  if (calc.status === 'passed' && calc.minGrade === null) {
+    return `<div class="min-grade-box mgb-green" style="grid-column:1/-1">
+      <div class="mgb-label">Résultat final</div>
+      <div class="mgb-value">✓</div>
+      <div class="mgb-sub">Moyenne : ${calc.avg.toFixed(2)} — Réussi !${calc.avg >= target ? ` Objectif ${target} atteint ✓` : ` (objectif ${target} non atteint)`}</div>
+    </div>`;
+  }
+  if (calc.status === 'failed' && calc.minGrade === null) {
+    return `<div class="min-grade-box mgb-red" style="grid-column:1/-1">
+      <div class="mgb-label">Résultat final</div>
+      <div class="mgb-value">✗</div>
+      <div class="mgb-sub">Moyenne : ${calc.avg.toFixed(2)} — Insuffisant, plus de tests disponibles</div>
+    </div>`;
+  }
+  if (calc.status === 'assured') {
+    return `<div class="min-grade-box mgb-green" style="grid-column:1/-1">
+      <div class="mgb-label">Note minimale pour atteindre ${target}</div>
+      <div class="mgb-value">Assurée ✓</div>
+      <div class="mgb-sub">Même avec 1.0 partout, l'objectif ${target} est atteint${calc.avg !== null ? ` (moy. actuelle : ${calc.avg.toFixed(2)})` : ''}</div>
+    </div>`;
+  }
+  if (calc.status === 'impossible') {
+    return `<div class="min-grade-box mgb-red" style="grid-column:1/-1">
+      <div class="mgb-label">Note minimale pour atteindre ${target}</div>
+      <div class="mgb-value">Objectif hors de portée</div>
+      <div class="mgb-sub">Note requise &gt; 6.0${calc.avg !== null ? ` (moy. actuelle : ${calc.avg.toFixed(2)})` : ''}</div>
+    </div>`;
+  }
+
+  const mg  = calc.minGrade;
+  const mgR = Math.ceil(mg * 2) / 2;
+  const cls = mgR >= 5.5 ? 'mgb-red' : mgR >= 4.5 ? 'mgb-orange' : 'mgb-green';
+  const diff = mgR >= 5.5 ? 'Difficile' : mgR >= 4.5 ? 'Faisable' : 'Accessible';
+  return `<div class="min-grade-box ${cls}" style="grid-column:1/-1">
+    <div class="mgb-label">Note minimale pour atteindre l'objectif ${target}</div>
+    <div class="mgb-value">${mgR % 1 === 0 ? mgR.toFixed(1) : mgR}</div>
+    <div class="mgb-sub">${diff}${calc.avg !== null ? ` — Moy. actuelle : ${calc.avg.toFixed(2)}` : ''}</div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// Subject actions
+// ════════════════════════════════════════════════════════════
+function toggleAddSubject() {
+  const row = document.getElementById('add-subject-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-subj-name').focus();
+}
+
+async function addSubject() {
+  const name = document.getElementById('inp-subj-name').value.trim();
+  if (!name) return showToast('Entrez un nom de matière', 'error');
+  try {
+    const s = await POST('/api/subjects', { name, year: S.year, trimester: S.trimester });
+    S.subjects.push(s);
+    S.details[s.id] = { grades: [], futures: [] };
+    document.getElementById('inp-subj-name').value = '';
+    document.getElementById('add-subject-row').style.display = 'none';
+    renderSubjects();
+    showToast(`Matière "${name}" ajoutée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteSubject(id) {
+  if (!confirm('Supprimer cette matière et toutes ses notes ?')) return;
+  try {
+    const name = S.subjects.find(s => s.id === id)?.name;
+    await DELETE(`/api/subjects/${id}`);
+    S.subjects = S.subjects.filter(s => s.id !== id);
+    delete S.details[id];
+    if (S.expanded === id) S.expanded = null;
+    renderSubjects();
+    showToast(`Matière "${name}" supprimée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function toggleSubject(id) {
+  S.expanded = S.expanded === id ? null : id;
+  renderSubjects();
+}
+
+// ════════════════════════════════════════════════════════════
+// Grade actions
+// ════════════════════════════════════════════════════════════
+let _agSid = null;
+function openAddGradeModal(sid) {
+  _agSid = sid;
+  document.getElementById('ag-name').value    = '';
+  document.getElementById('ag-value').value   = '';
+  document.getElementById('ag-weight').value  = '';
+  document.getElementById('ag-comment').value = '';
+  document.getElementById('ag-err').style.display = 'none';
+  const subjectName = S.subjects.find(s => s.id === sid)?.name || '';
+  document.getElementById('modal-add-grade-title').textContent =
+    subjectName ? `Ajouter une note — ${subjectName}` : 'Ajouter une note';
+  document.getElementById('modal-add-grade').classList.add('open');
+  setTimeout(() => document.getElementById('ag-name').focus(), 50);
+}
+function closeAddGradeModal() {
+  document.getElementById('modal-add-grade').classList.remove('open');
+  _agSid = null;
+}
+async function confirmAddGrade() {
+  const sid    = _agSid;
+  const name   = document.getElementById('ag-name').value.trim();
+  const value  = parseFloat(document.getElementById('ag-value').value);
+  const weight = parseFloat(document.getElementById('ag-weight').value);
+  const comment = document.getElementById('ag-comment').value.trim();
+  const errEl  = document.getElementById('ag-err');
+  errEl.style.display = 'none';
+  if (!name)                          { errEl.textContent = 'Entrez un nom'; errEl.style.display='block'; return; }
+  if (isNaN(value)||value<1||value>6) { errEl.textContent = 'Note invalide (1–6)'; errEl.style.display='block'; return; }
+  if (isNaN(weight)||weight<=0)       { errEl.textContent = 'Poids % invalide'; errEl.style.display='block'; return; }
+  try {
+    const g = await POST(`/api/subjects/${sid}/grades`, { name, value, weight, comment });
+    S.details[sid].grades.push(g);
+    closeAddGradeModal();
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" ajoutée (${value})`);
+  } catch (e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+async function deleteGrade(sid, gid) {
+  const name = S.details[sid]?.grades.find(g => g.id === gid)?.name;
+  if (!confirm(`Supprimer la note "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/grades/${gid}`);
+    S.details[sid].grades = S.details[sid].grades.filter(g => g.id !== gid);
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" supprimée`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Future test actions
+// ════════════════════════════════════════════════════════════
+let _tmPreSid = null;
+
+let _tmTab = 'mat';
+
+function setTestTab(tab) {
+  _tmTab = tab;
+  const isMat = tab === 'mat';
+  document.getElementById('tm-fields-mat').style.display = isMat ? '' : 'none';
+  document.getElementById('tm-fields-cg').style.display  = isMat ? 'none' : '';
+  document.getElementById('tm-tab-mat').style.background  = isMat ? 'var(--acc2)' : 'transparent';
+  document.getElementById('tm-tab-mat').style.color       = isMat ? '#fff' : 'var(--tx2)';
+  document.getElementById('tm-tab-cg').style.background   = isMat ? 'transparent' : 'var(--acc2)';
+  document.getElementById('tm-tab-cg').style.color        = isMat ? 'var(--tx2)' : '#fff';
+  document.getElementById('test-modal-error').style.display = 'none';
+}
+
+function updateCGTestFields() {
+  const type = document.getElementById('tm-cg-type').value;
+  document.getElementById('tm-cg-points-row').style.display = type === 'futur' ? 'none' : 'grid';
+}
+
+async function openTestModal(preSid) {
+  _tmPreSid = preSid ?? null;
+  setTestTab('mat');
+
+  // Load matières subjects
+  let subjects;
+  try { subjects = await GET('/api/subjects'); }
+  catch { subjects = S.subjects || []; }
+  const sel = document.getElementById('tm-subject');
+  sel.innerHTML = subjects.length
+    ? subjects.map(s => `<option value="${s.id}" ${s.id == preSid ? 'selected' : ''}>${s.name} — An.${s.year} T${s.trimester}</option>`).join('')
+    : '<option value="">Aucune matière disponible</option>';
+
+  // Load CG subjects
+  let cgSubjects;
+  try { cgSubjects = await GET(`/api/cg?year=${S.year}`); }
+  catch { cgSubjects = S.cg || []; }
+  const cgSel = document.getElementById('tm-cg-subject');
+  cgSel.innerHTML = cgSubjects.length
+    ? cgSubjects.map(s => `<option value="${s.id}">${s.name} — An.${s.year}</option>`).join('')
+    : '<option value="">Aucune matière CG</option>';
+
+  document.getElementById('tm-date').value      = '';
+  document.getElementById('tm-time').value      = '';
+  document.getElementById('tm-weight').value    = '';
+  document.getElementById('tm-note').value      = '';
+  document.getElementById('tm-cg-name').value   = '';
+  document.getElementById('tm-cg-obtained').value = '';
+  document.getElementById('tm-cg-total').value  = '';
+  document.getElementById('tm-cg-type').value   = 'test';
+  updateCGTestFields();
+  document.getElementById('test-modal-error').style.display = 'none';
+
+  const overlay = document.getElementById('test-modal-overlay');
+  overlay.style.opacity = '1';
+  overlay.style.pointerEvents = 'all';
+  document.getElementById('test-modal-box').style.transform = 'translateY(0)';
+  overlay.style.alignItems = window.innerWidth >= 520 ? 'center' : 'flex-end';
+  document.getElementById('test-modal-box').style.borderRadius = window.innerWidth >= 520 ? '18px' : '18px 18px 0 0';
+}
+
+function closeTestModal() {
+  const overlay = document.getElementById('test-modal-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+  document.getElementById('test-modal-box').style.transform = 'translateY(20px)';
+}
+
+async function submitTestModal() {
+  const errEl   = document.getElementById('test-modal-error');
+  const showErr = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+  errEl.style.display = 'none';
+
+  if (_tmTab === 'mat') {
+    const subjectId = document.getElementById('tm-subject').value;
+    const dateTest  = document.getElementById('tm-date').value;
+    const timeTest  = document.getElementById('tm-time').value || null;
+    const weightRaw = document.getElementById('tm-weight').value;
+    const noteRaw   = document.getElementById('tm-note').value;
+    if (!subjectId) return showErr('Veuillez sélectionner une matière');
+    if (!dateTest)  return showErr('La date est requise');
+    const weight = parseFloat(weightRaw);
+    if (!weightRaw || isNaN(weight) || weight <= 0 || weight > 100) return showErr('Coefficient invalide (0.1–100)');
+    const note = noteRaw !== '' ? parseFloat(noteRaw) : null;
+    if (note !== null && (isNaN(note) || note < 1 || note > 6)) return showErr('Note invalide (1–6)');
+    try {
+      const f = await POST('/api/tests', { subject_id: parseInt(subjectId), date_test: dateTest, time_test: timeTest, weight, note });
+      const sid = parseInt(subjectId);
+      if (S.details[sid]) { S.details[sid].futures.push(f); renderSubjectInPlace(sid); }
+      closeTestModal();
+      showToast(`Test du ${dateTest} ajouté ✓`);
+    } catch(e) { showErr(e.message || 'Erreur serveur'); }
+
+  } else {
+    const cgSid   = document.getElementById('tm-cg-subject').value;
+    const sem     = parseInt(document.getElementById('tm-cg-sem').value);
+    const type    = document.getElementById('tm-cg-type').value;
+    const name    = document.getElementById('tm-cg-name').value.trim();
+    if (!cgSid)  return showErr('Veuillez sélectionner une matière CG');
+    if (!name)   return showErr('Le nom du test est requis');
+
+    try {
+      if (type === 'futur') {
+        await POST(`/api/cg/subjects/${cgSid}/futures`, { semester: sem, name, is_petit_test: 0 });
+        showToast(`Test à venir "${name}" ajouté ✓`);
+      } else {
+        const obt = parseFloat(document.getElementById('tm-cg-obtained').value);
+        const tot = parseFloat(document.getElementById('tm-cg-total').value);
+        if (isNaN(obt) || obt < 0)           return showErr('Points obtenus invalides (≥ 0)');
+        if (isNaN(tot) || tot <= 0)           return showErr('Points totaux invalides (> 0)');
+        if (obt > tot)                        return showErr('Points obtenus > points totaux');
+        const endpoint = type === 'petit'
+          ? `/api/cg/subjects/${cgSid}/small-tests`
+          : `/api/cg/subjects/${cgSid}/tests`;
+        await POST(endpoint, { semester: sem, name, points_obtained: obt, points_total: tot });
+        showToast(`Test CG "${name}" ajouté ✓`);
+      }
+      // Refresh CG data
+      try {
+        S.cg = await GET(`/api/cg?year=${S.year}`);
+        renderCG();
+        renderDashboard();
+      } catch {}
+      closeTestModal();
+    } catch(e) { showErr(e.message || 'Erreur serveur'); }
+  }
+}
+
+async function deleteFuture(sid, fid) {
+  const name = S.details[sid]?.futures.find(f => f.id === fid)?.name;
+  if (!confirm(`Supprimer le test à venir "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/future/${fid}`);
+    S.details[sid].futures = S.details[sid].futures.filter(f => f.id !== fid);
+    renderSubjectInPlace(sid);
+    showToast(`Test "${name}" supprimé`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderSubjectInPlace(sid) {
+  const s = S.subjects.find(s => s.id === sid);
+  if (!s) return;
+  const card = document.getElementById(`sc-${sid}`);
+  if (card) card.outerHTML = renderSubjectCard(s);
+  renderDashboard();
+}
+
+// ════════════════════════════════════════════════════════════
+// Projects
+// ════════════════════════════════════════════════════════════
+function toggleAddProject() {
+  const row = document.getElementById('add-project-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-proj-name').focus();
+}
+
+async function addProject() {
+  const name    = document.getElementById('inp-proj-name').value.trim();
+  const periods = parseInt(document.getElementById('inp-proj-periods').value, 10);
+  if (!name)                         return showToast('Entrez un nom de projet', 'error');
+  if (isNaN(periods) || periods < 1) return showToast('Nombre de périodes invalide', 'error');
+  try {
+    const p = await POST('/api/projects', { name, periods, year: S.year, trimester: S.trimester });
+    S.projects.push(p);
+    document.getElementById('inp-proj-name').value    = '';
+    document.getElementById('inp-proj-periods').value = '';
+    document.getElementById('add-project-row').style.display = 'none';
+    renderProjects();
+    showToast(`Projet "${name}" ajouté`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function toggleProject(id) {
+  const p = S.projects.find(p => p.id === id);
+  if (!p) return;
+  try {
+    await PATCH(`/api/projects/${id}`, { success: !p.success });
+    p.success = p.success ? 0 : 1;
+    renderProjects();
+    showToast(p.success ? `"${p.name}" marqué réussi` : `"${p.name}" marqué échoué`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteProject(id) {
+  const name = S.projects.find(p => p.id === id)?.name;
+  if (!confirm(`Supprimer le projet "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/projects/${id}`);
+    S.projects = S.projects.filter(p => p.id !== id);
+    renderProjects();
+    showToast(`Projet "${name}" supprimé`);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderProjects() {
+  const list = document.getElementById('projects-list');
+  const total     = S.projects.reduce((s, p) => s + p.periods, 0);
+  const validated = S.projects.filter(p => p.success).reduce((s, p) => s + p.periods, 0);
+  const pct       = total > 0 ? (validated / total) * 100 : 0;
+  const tier      = pct >= 80 ? 'g' : pct >= 60 ? 'o' : 'r';
+
+  document.getElementById('p-total').textContent = total;
+  document.getElementById('p-valid').textContent = validated;
+  document.getElementById('p-pct').textContent   = pct.toFixed(1) + '%';
+  document.getElementById('p-pct').className     = `stat-val ${pct>=80?'green':pct>=60?'orange':'red'}`;
+  document.getElementById('p-bar').style.width   = Math.min(pct, 100) + '%';
+  document.getElementById('p-bar').className     = `prog-fill pf-${tier}`;
+
+  const msgEl = document.getElementById('p-msg');
+  if (pct >= 80) {
+    document.getElementById('p-status').innerHTML = `<span class="green">✓ Objectif atteint (${pct.toFixed(1)}%)</span>`;
+    msgEl.innerHTML = `<div class="proj-msg badge-g" style="margin-bottom:12px">✓ Tu passes — périodes validées suffisantes !</div>`;
+  } else if (total > 0) {
+    const miss = Math.ceil(total * 0.8) - validated;
+    document.getElementById('p-status').innerHTML = `<span class="red">✗ Insuffisant (${pct.toFixed(1)}%)</span>`;
+    msgEl.innerHTML = `<div class="proj-msg badge-r" style="margin-bottom:12px">✗ Il manque encore <strong>${miss}</strong> période(s) validée(s) pour atteindre 80%</div>`;
+  } else {
+    document.getElementById('p-status').textContent = '—';
+    msgEl.innerHTML = '';
+  }
+
+  if (!S.projects.length) {
+    list.innerHTML = '<div class="empty-state">Aucun projet pour cette année</div>';
+    renderDashboard();
+    return;
+  }
+
+  list.innerHTML = S.projects.map(p => `
+    <div class="proj-item" id="pitem-${p.id}">
+      <span class="proj-name">${esc(p.name)}</span>
+      <span class="proj-periods">${p.periods} période(s)</span>
+      <div class="toggle-wrap">
+        <span class="tgl-lbl ${p.success ? 'green' : 'red'}">${p.success ? 'Réussi' : 'Échoué'}</span>
+        <label class="toggle">
+          <input type="checkbox" ${p.success ? 'checked' : ''} onchange="toggleProject(${p.id})">
+          <span class="tgl-s"></span>
+        </label>
+      </div>
+      <button class="btn-edit" onclick="startEditProject(${p.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteProject(${p.id})">✕</button>
+    </div>`).join('');
+  renderDashboard();
+}
+
+// ════════════════════════════════════════════════════════════
+// Export / Import JSON
+// ════════════════════════════════════════════════════════════
+async function exportJSON() {
+  try {
+    const r = await fetch('/api/export/json', { headers: { Authorization: 'Bearer ' + S.token } });
+    if (!r.ok) throw new Error();
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `notes_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Données exportées en JSON', 'success');
+  } catch {
+    showToast('Erreur lors de l\'export', 'error');
+  }
+}
+
+function triggerImport() {
+  document.getElementById('import-file-input').click();
+}
+
+async function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+
+  const ok = confirm('Attention — ceci remplacera TOUTES tes données actuelles (matières, notes, CG, projets).\n\nContinuer ?');
+  if (!ok) return;
+
+  try {
+    const data = JSON.parse(await file.text());
+    const r = await fetch('/api/import/json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + S.token },
+      body: JSON.stringify(data)
+    });
+    const res = await r.json();
+    if (!r.ok) throw new Error(res.error);
+    showToast('Données importées avec succès', 'success');
+    loadAll();
+  } catch (err) {
+    showToast('Erreur : ' + err.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Export PDF
+// ════════════════════════════════════════════════════════════
+async function exportPDF() {
+  const btn = document.querySelector('.btn-export-pdf');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg> Génération…`;
+
+  const params = new URLSearchParams();
+  if (S.year)      params.set('year',      S.year);
+  if (S.trimester) params.set('trimester', S.trimester);
+
+  try {
+    const r = await fetch(`/api/export/pdf?${params}`, { headers: { Authorization: 'Bearer ' + S.token } });
+    if (!r.ok) throw new Error('Erreur serveur');
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `notes_${S.year || 'all'}_T${S.trimester || 'all'}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('PDF exporté avec succès', 'success');
+  } catch (e) {
+    showToast('Erreur lors de l\'export PDF', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Dashboard
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// Charts
+// ════════════════════════════════════════════════════════════
+let _chartEvol = null;
+let _chartSubj = null;
+let _chartsMode = 'mat';
+
+function setChartsMode(mode) {
+  _chartsMode = mode;
+  document.querySelectorAll('#charts-mode-toggle .cg-kind-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  renderCharts();
+}
+
+function gradeColor(v, alpha) {
+  alpha = alpha ?? 1;
+  if (v === null) return `rgba(148,163,184,${alpha})`;
+  if (v >= 4)    return `rgba(52,211,153,${alpha})`;
+  if (v >= 3.5)  return `rgba(249,115,22,${alpha})`;
+  return `rgba(251,113,133,${alpha})`;
+}
+
+async function renderCharts() {
+  const chartsEl = document.getElementById('dash-charts');
+  const toggleEl = document.getElementById('charts-mode-toggle');
+
+  let byTrimester, bySubject;
+
+  if (_chartsMode === 'cg') {
+    const qs = `?year=${S.year}`;
+    let data;
+    try { data = await GET('/api/stats/evolution/cg' + qs); }
+    catch { return; }
+    byTrimester = data.bySemester.map(r => ({ year: r.year, trimester: r.semester, avg: r.avg, nb: r.nb }));
+    bySubject   = data.bySubject;
+  } else {
+    const qs = `?year=${S.year}&trimester=${S.trimester}`;
+    let data;
+    try { data = await GET('/api/stats/evolution' + qs); }
+    catch { return; }
+    byTrimester = data.byTrimester;
+    bySubject   = data.bySubject;
+  }
+
+  toggleEl.style.display = '';
+  chartsEl.style.display = '';
+
+  if (!byTrimester.length) {
+    document.getElementById('chart-evolution-wrap').style.display = 'none';
+    document.getElementById('chart-evolution-empty').style.display = '';
+  } else {
+    document.getElementById('chart-evolution-wrap').style.display = '';
+    document.getElementById('chart-evolution-empty').style.display = 'none';
+  }
+
+  if (!bySubject.length) {
+    document.getElementById('chart-subjects-wrap').style.display = 'none';
+    document.getElementById('chart-subjects-empty').style.display = '';
+  } else {
+    document.getElementById('chart-subjects-wrap').style.display = '';
+    document.getElementById('chart-subjects-empty').style.display = 'none';
+  }
+
+  if (!byTrimester.length && !bySubject.length) return;
+
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#1a1a38',
+      borderColor: 'rgba(255,255,255,.12)',
+      borderWidth: 1,
+      titleColor: '#e2e8f0',
+      bodyColor: '#94a3b8',
+      padding: 10,
+    }},
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+      y: { min: 1, max: 6, grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: '#94a3b8', font: { size: 11 }, stepSize: 1 } },
+    },
+  };
+
+  // ── Line chart: évolution ──
+  if (byTrimester.length) {
+    const labels = byTrimester.map(r => _chartsMode === 'cg' ? `An${r.year} S${r.trimester}` : `An${r.year} T${r.trimester}`);
+    const avgs   = byTrimester.map(r => +r.avg);
+
+    if (_chartEvol) _chartEvol.destroy();
+    _chartEvol = new Chart(document.getElementById('chart-evolution'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: avgs,
+            borderColor: '#a78bfa',
+            backgroundColor: 'rgba(167,139,250,.15)',
+            borderWidth: 2.5,
+            pointBackgroundColor: avgs.map(v => gradeColor(v)),
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            tension: 0.35,
+            fill: true,
+          },
+          {
+            data: Array(labels.length).fill(4.0),
+            borderColor: 'rgba(249,115,22,.5)',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          ...chartDefaults.plugins,
+          tooltip: {
+            ...chartDefaults.plugins.tooltip,
+            callbacks: {
+              title: ctx => ctx[0].label,
+              label: ctx => ctx.datasetIndex === 0 ? ` Moyenne : ${ctx.parsed.y.toFixed(2)}` : ' Seuil : 4.00',
+            },
+          },
+        },
+      },
+    });
+  } else {
+    if (_chartEvol) { _chartEvol.destroy(); _chartEvol = null; }
+    document.getElementById('chart-evolution').getContext('2d').clearRect(0,0,9999,9999);
+  }
+
+  // ── Bar chart: moyenne par matière ──
+  document.getElementById('chart-subjects-label').textContent = _chartsMode === 'cg'
+    ? `Moyenne CG par matière — An${S.year} (les 2 semestres)`
+    : `Moyenne par matière — An${S.year} T${S.trimester}`;
+
+  if (bySubject.length) {
+    const labels = bySubject.map(r => r.name.length > 18 ? r.name.slice(0, 16) + '…' : r.name);
+    const avgs   = bySubject.map(r => +r.avg);
+
+    if (_chartSubj) _chartSubj.destroy();
+    _chartSubj = new Chart(document.getElementById('chart-subjects'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: avgs,
+          backgroundColor: avgs.map(v => gradeColor(v, 0.7)),
+          borderColor:      avgs.map(v => gradeColor(v, 1)),
+          borderWidth: 1.5,
+          borderRadius: 6,
+          hoverBackgroundColor: avgs.map(v => gradeColor(v, 0.9)),
+        }],
+      },
+      options: {
+        ...chartDefaults,
+        plugins: {
+          ...chartDefaults.plugins,
+          tooltip: {
+            ...chartDefaults.plugins.tooltip,
+            callbacks: {
+              label: ctx => ` ${ctx.parsed.y.toFixed(2)} (${bySubject[ctx.dataIndex].nb} note(s))`,
+            },
+          },
+        },
+        scales: {
+          ...chartDefaults.scales,
+          x: { ...chartDefaults.scales.x, ticks: { ...chartDefaults.scales.x.ticks, maxRotation: 35, minRotation: 0 } },
+        },
+      },
+    });
+  } else {
+    if (_chartSubj) { _chartSubj.destroy(); _chartSubj = null; }
+  }
+}
+
+function renderDashboard() {
+  // 1. Moyenne des matières (moyenne des moyennes pondérées)
+  const subjectAvgs = S.subjects.map(s => {
+    const d = S.details[s.id] || { grades: [], futures: [] };
+    return calcSubject(d.grades, d.futures).avg;
+  }).filter(v => v !== null);
+  const globalSubj = subjectAvgs.length
+    ? subjectAvgs.reduce((a,b)=>a+b,0)/subjectAvgs.length : null;
+
+  // 2. Moyennes CG globales
+  const cgAvgsList = S.cg.map(s => cgSubjectAvgs(s));
+  const mean = arr => { const f=arr.filter(v=>v!==null); return f.length?f.reduce((a,b)=>a+b,0)/f.length:null; };
+  const cgS1 = mean(cgAvgsList.map(a=>a.s1Avg));
+  const cgS2 = mean(cgAvgsList.map(a=>a.s2Avg));
+  const cgAnnParts = [cgS1, cgS2].filter(v => v !== null);
+  const cgAnn = cgAnnParts.length ? cgAnnParts.reduce((a,b)=>a+b,0)/cgAnnParts.length : null;
+
+  // 3. Projets
+  const totPer = S.projects.reduce((s,p)=>s+p.periods,0);
+  const valPer = S.projects.filter(p=>p.success).reduce((s,p)=>s+p.periods,0);
+  const projPct = totPer>0 ? valPer/totPer*100 : null;
+
+  // Helpers
+  const fmt    = v => v!==null ? v.toFixed(2) : '—';
+  const fmtPct = v => v!==null ? v.toFixed(1)+'%' : '—';
+  const vCls   = v => v===null?'':v>=4?'green':v>=3.5?'orange':'red';
+  const dCls   = v => v===null?'ds-neutral':v>=4?'ds-green':v>=3.5?'ds-orange':'ds-red';
+  const pCls   = v => v===null?'ds-neutral':v>=80?'ds-green':v>=60?'ds-orange':'ds-red';
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="dash-stat ${dCls(globalSubj)}">
+      <div class="dash-label">Moyenne Informatique</div>
+      <div class="dash-value ${vCls(globalSubj)}">${fmt(globalSubj)}</div>
+      <div class="dash-sub">${subjectAvgs.length} matière(s) avec notes</div>
+    </div>
+    <div class="dash-stat ${dCls(cgS1)}">
+      <div class="dash-label">CG · Semestre 1</div>
+      <div class="dash-value ${vCls(cgS1)}">${fmt(cgS1)}</div>
+      <div class="dash-sub">Culture Générale</div>
+    </div>
+    <div class="dash-stat ${dCls(cgS2)}">
+      <div class="dash-label">CG · Semestre 2</div>
+      <div class="dash-value ${vCls(cgS2)}">${fmt(cgS2)}</div>
+      <div class="dash-sub">Culture Générale</div>
+    </div>
+    <div class="dash-stat ${dCls(cgAnn)}">
+      <div class="dash-label">CG · Annuelle</div>
+      <div class="dash-value ${vCls(cgAnn)}">${fmt(cgAnn)}</div>
+      <div class="dash-sub">Moy. S1+S2</div>
+    </div>
+    <div class="dash-stat ${pCls(projPct)}">
+      <div class="dash-label">Projets périodes</div>
+      <div class="dash-value ${projPct===null?'':projPct>=80?'green':projPct>=60?'orange':'red'}">${fmtPct(projPct)}</div>
+      <div class="dash-sub">${valPer} / ${totPer} périodes validées</div>
+    </div>`;
+
+  // Indicateur global
+  const issues = [];
+  if (globalSubj!==null && globalSubj<4)  issues.push(`Informatique : ${fmt(globalSubj)}`);
+  if (cgS1!==null && cgS1<4)              issues.push(`CG S1 : ${fmt(cgS1)}`);
+  if (cgS2!==null && cgS2<4)              issues.push(`CG S2 : ${fmt(cgS2)}`);
+  if (cgAnn!==null && cgAnn<4)            issues.push(`CG ann. : ${fmt(cgAnn)}`);
+  if (projPct!==null && projPct<80)       issues.push(`Projets : ${fmtPct(projPct)}`);
+
+  const hasData = globalSubj!==null || cgS1!==null || cgS2!==null || cgAnn!==null || projPct!==null;
+  let html;
+  if (!hasData) {
+    html = `<div class="dash-status-box ds-box-empty">
+      <span class="dash-status-icon">—</span>
+      <div><div class="dash-status-main" style="color:var(--tx2)">Aucune donnée</div>
+      <div style="font-size:.82rem;color:var(--tx3)">Ajoute des notes, des tests CG ou des projets pour voir ton statut.</div></div>
+    </div>`;
+  } else if (issues.length === 0) {
+    html = `<div class="dash-status-box ds-box-ok">
+      <span class="dash-status-icon">✓</span>
+      <div><div class="dash-status-main green">Tu passes !</div>
+      <div style="font-size:.82rem;color:var(--tx2)">Toutes les moyennes ≥ 4.0 et les projets atteignent 80%.</div></div>
+    </div>`;
+  } else {
+    html = `<div class="dash-status-box ds-box-warn">
+      <span class="dash-status-icon">!</span>
+      <div><div class="dash-status-main red">Attention — en dessous du seuil</div>
+      <div class="dash-status-issues">${issues.map(i=>`<span class="dash-issue-tag">${i}</span>`).join('')}</div></div>
+    </div>`;
+  }
+  document.getElementById('dash-status').innerHTML = html;
+
+  // ── Gamification ──────────────────────────────────────────────
+  const allAvgs = [...subjectAvgs, cgS1, cgS2, cgAnn].filter(v => v !== null);
+
+  // Badges
+  const badges = [];
+  if (allAvgs.length > 0) {
+    if (allAvgs.every(v => v >= 5.0))            badges.push({label:'En feu',            cls:'badge-fire'});
+    else if (allAvgs.every(v => v >= 4.0))        badges.push({label:'Sur la bonne voie',  cls:'badge-star'});
+    if (allAvgs.some(v => v >= 3.5 && v < 4.0))  badges.push({label:'Attention',          cls:'badge-warn'});
+    if (allAvgs.some(v => v < 3.5))               badges.push({label:'En danger',          cls:'badge-danger'});
+  }
+  if (projPct !== null && projPct >= 80)           badges.push({label:'Projet validé',     cls:'badge-trophy'});
+  const cgAvgsForBadge = [cgS1, cgS2].filter(v => v !== null);
+  if (cgAvgsForBadge.length > 0 && cgAvgsForBadge.every(v => v >= 4.0))
+                                                   badges.push({label:'CG réussie',        cls:'badge-grad'});
+
+  // Global progress %
+  const allNorm = [];
+  if (subjectAvgs.length) allNorm.push((subjectAvgs.reduce((a,b)=>a+b,0)/subjectAvgs.length - 1)/5*100);
+  if (cgAnn !== null)     allNorm.push((cgAnn - 1)/5*100);
+  if (projPct !== null)   allNorm.push(projPct);
+  const globalPct = allNorm.length ? Math.round(allNorm.reduce((a,b)=>a+b,0)/allNorm.length) : 0;
+  const fillCls = globalPct >= 80 ? 'bar-g' : globalPct >= 60 ? 'bar-o' : 'bar-r';
+
+  document.getElementById('dash-progress').innerHTML = `
+    <div class="gp-section">
+      <div class="gp-header">
+        <span class="gp-label">Niveau scolaire global</span>
+        <span class="gp-pct">${allNorm.length ? globalPct+'%' : '—'}</span>
+      </div>
+      <div class="gp-bar"><div class="gp-fill ${fillCls}" style="width:${globalPct}%"></div></div>
+    </div>`;
+
+  document.getElementById('dash-badges').innerHTML = badges.length
+    ? `<div class="badges-row">${badges.map(b=>`<div class="badge ${b.cls}">${b.label}</div>`).join('')}</div>`
+    : '';
+}
+
+// ════════════════════════════════════════════════════════════
+// Section Statistiques personnelles
+// ════════════════════════════════════════════════════════════
+let _scYearsBar = null, _scRadar = null;
+let _statsLoaded = false;
+let _radarMode = 'info';
+let _radarInfoSubs = [], _radarCGSubs = [];
+
+function setRadarMode(mode) {
+  _radarMode = mode;
+  document.querySelectorAll('#radar-mode-toggle .cg-kind-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === mode));
+  renderRadarChart();
+}
+
+function renderRadarChart(tooltipDef) {
+  const td = tooltipDef ?? {
+    backgroundColor: '#1a1a38', borderColor: 'rgba(255,255,255,.12)', borderWidth: 1,
+    titleColor: '#e2e8f0', bodyColor: '#94a3b8', padding: 10,
+  };
+  if (_scRadar) { _scRadar.destroy(); _scRadar = null; }
+
+  const radarScales = { r: {
+    min: 1, max: 6,
+    ticks: { stepSize: 1, color: '#64748b', font: { size: 10 }, backdropColor: 'transparent' },
+    grid: { color: 'rgba(255,255,255,.08)' },
+    angleLines: { color: 'rgba(255,255,255,.08)' },
+    pointLabels: { color: '#94a3b8', font: { size: 10 } },
+  }};
+  const shorten = n => n.length > 14 ? n.slice(0,13)+'…' : n;
+  const wrap = document.getElementById('sc-radar').closest('.stat-chart-card').querySelector('.stat-chart-wrap');
+
+  if (_radarMode === 'both') {
+    // Axes = union des deux listes (Info d'abord, puis CG)
+    const infoNames = _radarInfoSubs.map(s => s.name);
+    const cgNames   = _radarCGSubs.map(s => s.name).filter(n => !infoNames.includes(n));
+    const allNames  = [...infoNames, ...cgNames];
+    if (allNames.length < 3) {
+      wrap.innerHTML = '<p style="color:var(--tx3);font-size:.8rem;padding-top:2rem;text-align:center">3 matières minimum</p>';
+      return;
+    }
+    const labels = allNames.map(shorten);
+    const infoData = allNames.map(n => { const s = _radarInfoSubs.find(x=>x.name===n); return s ? +s.avg : null; });
+    const cgData   = allNames.map(n => { const s = _radarCGSubs.find(x=>x.name===n);   return s ? +s.avg : null; });
+    _scRadar = new Chart(document.getElementById('sc-radar'), {
+      type: 'radar',
+      data: { labels, datasets: [
+        { label: 'Informatique', data: infoData,
+          borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.12)',
+          borderWidth: 2, pointBackgroundColor: infoData.map(v => v ? gradeColor(v) : 'transparent'), pointRadius: 4 },
+        { label: 'CG', data: cgData,
+          borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,.1)',
+          borderWidth: 2, pointBackgroundColor: cgData.map(v => v ? gradeColor(v) : 'transparent'), pointRadius: 4 },
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } },
+          tooltip: { ...td, callbacks: { label: ctx => ctx.raw != null ? ` ${ctx.dataset.label} : ${(+ctx.raw).toFixed(2)}` : '' } },
+        },
+        scales: radarScales,
+      },
+    });
+  } else {
+    const subs = (_radarMode === 'cg' ? _radarCGSubs : _radarInfoSubs).slice(0, 10);
+    if (subs.length < 3) {
+      wrap.innerHTML = '<p style="color:var(--tx3);font-size:.8rem;padding-top:2rem;text-align:center">3 matières minimum pour afficher le radar</p>';
+      return;
+    }
+    const labels = subs.map(s => shorten(s.name));
+    const avgs   = subs.map(s => +s.avg);
+    const col    = _radarMode === 'cg' ? '#60a5fa' : '#a78bfa';
+    const colBg  = _radarMode === 'cg' ? 'rgba(96,165,250,.12)' : 'rgba(167,139,250,.15)';
+    _scRadar = new Chart(document.getElementById('sc-radar'), {
+      type: 'radar',
+      data: { labels, datasets: [{
+        data: avgs, borderColor: col, backgroundColor: colBg,
+        borderWidth: 2, pointBackgroundColor: avgs.map(v => gradeColor(v)), pointRadius: 4,
+      }]},
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+        plugins: { legend: { display: false }, tooltip: { ...td,
+          callbacks: { label: ctx => ` ${(+ctx.raw).toFixed(2)} / 6` }
+        }},
+        scales: radarScales,
+      },
+    });
+  }
+}
+
+function toggleStatsSection() {
+  const body  = document.getElementById('stats-body');
+  const label = document.getElementById('stats-toggle-label');
+  const icon  = document.getElementById('stats-toggle-icon');
+  const open  = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  label.textContent  = open ? 'Réduire' : 'Afficher';
+  icon.style.transform = open ? 'rotate(180deg)' : '';
+  if (open && !_statsLoaded) renderStatsSection();
+}
+
+async function renderStatsSection() {
+  _statsLoaded = true;
+
+  const tooltipDefaults = {
+    backgroundColor: '#1a1a38', borderColor: 'rgba(255,255,255,.12)', borderWidth: 1,
+    titleColor: '#e2e8f0', bodyColor: '#94a3b8', padding: 10,
+  };
+  const scaleDefaults = {
+    x: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+    y: { min: 1, max: 6, grid: { color: 'rgba(255,255,255,.06)' }, ticks: { color: '#94a3b8', font: { size: 11 }, stepSize: 1 } },
+  };
+
+  // ── 1. Chiffres clés ────────────────────────────────────────────────
+  try {
+    const p = await GET('/api/stats/personal');
+    const fv = v => v != null ? (+v).toFixed(2) : '—';
+    const kpiColor = v => v==null?'var(--tx2)':v>=4?'var(--green)':v>=3.5?'var(--orange)':'var(--red)';
+    document.getElementById('sc-personal').innerHTML = [
+      { label:'Notes enregistrées', val: p.total_grades,   sub: `${p.total_subjects} matières · ${p.total_cg_tests} tests CG`, col:'var(--acc)' },
+      { label:'Meilleure note',      val: fv(p.best_grade),  sub: p.best_subject  ? escHtml(p.best_subject.name)  : '—', col:kpiColor(p.best_grade) },
+      { label:'Note la plus basse',  val: fv(p.worst_grade), sub: p.worst_subject ? escHtml(p.worst_subject.name) : '—', col:kpiColor(p.worst_grade) },
+      { label:'Poids moyen',         val: p.avg_weight != null ? (+p.avg_weight).toFixed(1)+'%' : '—', sub:'coefficient moyen', col:'var(--tx2)' },
+    ].map(k => `
+      <div class="dash-stat ds-neutral">
+        <div class="dash-label">${k.label}</div>
+        <div class="dash-value" style="color:${k.col};font-size:1.6rem">${k.val}</div>
+        <div class="dash-sub">${k.sub}</div>
+      </div>`).join('');
+  } catch {}
+
+  // ── 2. Bar chart progression par année ──────────────────────────────
+  try {
+    const summary = await GET('/api/stats/summary');
+    if (_scYearsBar) { _scYearsBar.destroy(); _scYearsBar = null; }
+    const hasAny = summary.some(y => y.info_avg || y.cg_s1 || y.cg_s2);
+    if (hasAny) {
+      const labels = summary.map(y => `Année ${y.year}`);
+      _scYearsBar = new Chart(document.getElementById('sc-years-bar'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Informatique', data: summary.map(y => y.info_avg ?? null),
+              backgroundColor: 'rgba(167,139,250,.7)', borderColor: '#a78bfa', borderWidth: 1.5, borderRadius: 4 },
+            { label: 'CG S1', data: summary.map(y => y.cg_s1 ?? null),
+              backgroundColor: 'rgba(96,165,250,.6)', borderColor: '#60a5fa', borderWidth: 1.5, borderRadius: 4 },
+            { label: 'CG S2', data: summary.map(y => y.cg_s2 ?? null),
+              backgroundColor: 'rgba(52,211,153,.55)', borderColor: '#34d399', borderWidth: 1.5, borderRadius: 4 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+          plugins: {
+            legend: { display: true, labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12, padding: 14 } },
+            tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ` ${ctx.dataset.label} : ${ctx.raw?.toFixed(2) ?? '—'}` } },
+          },
+          scales: { ...scaleDefaults,
+            x: { ...scaleDefaults.x, stacked: false },
+            y: { ...scaleDefaults.y,
+              afterDraw: chart => {
+                const ctx2 = chart.ctx; ctx2.save();
+                ctx2.strokeStyle = 'rgba(249,115,22,.5)'; ctx2.lineWidth = 1.5;
+                ctx2.setLineDash([5,4]);
+                const y4 = chart.scales.y.getPixelForValue(4);
+                ctx2.beginPath(); ctx2.moveTo(chart.chartArea.left, y4); ctx2.lineTo(chart.chartArea.right, y4); ctx2.stroke();
+                ctx2.restore();
+              }
+            },
+          },
+        },
+      });
+    } else {
+      document.getElementById('sc-years-bar').closest('.stat-chart-card').querySelector('.stat-chart-wrap').innerHTML =
+        '<p style="color:var(--tx3);font-size:.8rem;padding-top:2rem;text-align:center">Aucune donnée sur plusieurs années</p>';
+    }
+  } catch {}
+
+  // ── 3. Radar matières année en cours ─────────────────────────────────
+  try {
+    const [{ bySubject: infoSubs }, { bySubject: cgSubs }] = await Promise.all([
+      GET(`/api/stats/evolution?year=${S.year}&trimester=${S.trimester}`),
+      GET(`/api/stats/evolution/cg?year=${S.year}`),
+    ]);
+    _radarInfoSubs = infoSubs.slice(0, 10);
+    _radarCGSubs   = cgSubs.slice(0, 10);
+    renderRadarChart(tooltipDefaults);
+  } catch {}
+
+  // ── 4. Tableau récapitulatif formation ───────────────────────────────
+  try {
+    const summary = await GET('/api/stats/summary');
+    const fmtCell = (v, isProj) => {
+      if (v == null) return '<td style="color:var(--tx3);text-align:center">—</td>';
+      const n = +v;
+      const ok = isProj ? n >= 80 : n >= 4;
+      const warn = isProj ? n >= 60 : n >= 3.5;
+      const col = ok ? 'var(--green)' : warn ? 'var(--orange)' : 'var(--red)';
+      const txt = isProj ? n.toFixed(1)+'%' : n.toFixed(2);
+      return `<td style="text-align:center;font-weight:600;color:${col}">${txt}</td>`;
+    };
+    document.getElementById('sc-summary-table').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:.83rem">
+        <thead>
+          <tr style="color:var(--tx3);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">
+            <th style="text-align:left;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">Année</th>
+            <th style="text-align:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">Informatique</th>
+            <th style="text-align:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">CG S1</th>
+            <th style="text-align:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">CG S2</th>
+            <th style="text-align:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">CG Ann.</th>
+            <th style="text-align:center;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08)">Projets</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${summary.map(y => {
+            const cgAnnVal = (y.cg_s1 != null || y.cg_s2 != null)
+              ? ([y.cg_s1, y.cg_s2].filter(v=>v!=null).reduce((a,b)=>a+b,0) / [y.cg_s1, y.cg_s2].filter(v=>v!=null).length)
+              : null;
+            const isEmpty = y.info_avg == null && y.cg_s1 == null && y.cg_s2 == null && y.proj_pct == null;
+            return `<tr style="border-bottom:1px solid rgba(255,255,255,.05);${isEmpty?'opacity:.35':''}">
+              <td style="padding:8px 10px;font-weight:700;color:var(--tx2)">Année ${y.year}</td>
+              ${fmtCell(y.info_avg, false)}
+              ${fmtCell(y.cg_s1, false)}
+              ${fmtCell(y.cg_s2, false)}
+              ${fmtCell(cgAnnVal, false)}
+              ${fmtCell(y.proj_pct, true)}
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch {}
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — calcul
+// ════════════════════════════════════════════════════════════
+function cgGrade(t) { return (t.points_obtained / t.points_total) * 5 + 1; }
+
+function calcCGSem(tests, petitsTests, futures, targetAvg = 4.0) {
+  const grades       = tests.map(cgGrade);
+  const petitsGrades = petitsTests.map(cgGrade);
+  const petitsAvg    = petitsGrades.length ? petitsGrades.reduce((a,b)=>a+b,0)/petitsGrades.length : null;
+
+  const curSum = grades.reduce((a,b)=>a+b,0) + (petitsAvg !== null ? petitsAvg : 0);
+  const curN   = grades.length + (petitsAvg !== null ? 1 : 0);
+  const n      = curN + futures.length;
+
+  const semAvg   = curN > 0 ? curSum / curN : null;
+  const minGrade = futures.length > 0 ? (targetAvg * n - curSum) / futures.length : null;
+  return { semAvg, minGrade, petitsAvg };
+}
+
+function fmtMinGrade(mg) {
+  if (mg === null) return null;
+  if (mg <= 1) return { label: 'Assurée ✓', cls: 'green' };
+  if (mg > 6)  return { label: 'Impossible ✗', cls: 'red' };
+  const mgR = Math.ceil(mg * 2) / 2;
+  const cls = mgR >= 5.5 ? 'red' : mgR >= 4.5 ? 'orange' : 'green';
+  const lbl = mgR % 1 === 0 ? mgR.toFixed(1) : String(mgR);
+  return { label: `Note min : ${lbl}`, cls };
+}
+
+function cgSubjectAvgs(s) {
+  const pt = s.petits_tests || [];
+  const s1 = calcCGSem(s.tests.filter(t => +t.semester === 1), pt.filter(t => +t.semester === 1), []);
+  const s2 = calcCGSem(s.tests.filter(t => +t.semester === 2), pt.filter(t => +t.semester === 2), []);
+  const ann = s1.semAvg !== null && s2.semAvg !== null ? (s1.semAvg + s2.semAvg) / 2 : null;
+  return { s1Avg: s1.semAvg, s2Avg: s2.semAvg, annAvg: ann };
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — rendu
+// ════════════════════════════════════════════════════════════
+function renderCG() {
+  const fmtAvg   = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls   = v => v === null ? '' : v >= 4 ? 'green' : 'red';
+  const passStat = v => v === null ? { txt:'—', cls:'' } : v >= 4 ? { txt:'✓ Réussi', cls:'green' } : { txt:'✗ Insuffisant', cls:'red' };
+
+  // Global indicators — average of all subjects' averages
+  const avgs = S.cg.map(s => cgSubjectAvgs(s));
+  const mean = arr => { const f = arr.filter(v => v !== null); return f.length ? f.reduce((a,b)=>a+b,0)/f.length : null; };
+  const gS1  = mean(avgs.map(a => a.s1Avg));
+  const gS2  = mean(avgs.map(a => a.s2Avg));
+  const gAnn = mean(avgs.map(a => a.annAvg));
+
+  ['s1','s2','yr'].forEach((k, i) => {
+    const v = [gS1, gS2, gAnn][i];
+    const st = passStat(v);
+    document.getElementById(`cg-${k}-avg`).textContent  = fmtAvg(v);
+    document.getElementById(`cg-${k}-avg`).className    = `cg-ind-val ${avgCls(v)}`;
+    document.getElementById(`cg-${k}-status`).textContent = st.txt;
+    document.getElementById(`cg-${k}-status`).className   = `cg-ind-status ${st.cls}`;
+  });
+
+  // Subject cards
+  const el = document.getElementById('cg-subjects-container');
+  const cgList = S.search
+    ? S.cg.filter(s => s.name.toLowerCase().includes(S.search))
+    : S.cg;
+  if (!S.cg.length) {
+    el.innerHTML = '<div class="empty-state">Aucune matière CG — ajoutez-en une ci-dessus</div>';
+    return;
+  } else if (!cgList.length) {
+    el.innerHTML = `<div class="empty-state">Aucune matière ne correspond à "<strong>${esc(S.search)}</strong>"</div>`;
+    return;
+  }
+  el.innerHTML = cgList.map(s => renderCGSubjectCard(s)).join('');
+  renderDashboard();
+}
+
+function renderCGSubjectCard(s) {
+  const { s1Avg, s2Avg, annAvg } = cgSubjectAvgs(s);
+  const isOpen  = S.cgExpanded === s.id;
+  const fmtAvg  = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls  = v => v === null ? '' : v >= 4 ? 'green' : v >= 3.5 ? 'orange' : 'red';
+  const annCls  = annAvg === null ? 'badge-n' : annAvg >= 4 ? 'badge-g' : annAvg >= 3.5 ? 'badge-o' : 'badge-r';
+  const annTxt  = annAvg === null ? 'Aucun test' : annAvg >= 4 ? 'Réussi' : annAvg >= 3.5 ? 'Limite' : 'Insuffisant';
+  const body    = isOpen ? renderCGSubjectBody(s) : '';
+
+  const barPct   = annAvg !== null ? Math.min(((annAvg - 1) / 5) * 100, 100).toFixed(1) : 0;
+  const barColor = annAvg === null ? 'rgba(255,255,255,.15)' : annAvg >= 4 ? 'var(--green)' : annAvg >= 3.5 ? 'var(--orange)' : 'var(--red)';
+
+  return `<div class="subject-card" id="cgsc-${s.id}">
+    <div class="subject-header" onclick="toggleCGSubject(${s.id})">
+      <span class="subject-name" id="cgname-${s.id}">${esc(s.name)}</span>
+      <span class="cg-sem-badge">S1 : <span class="${avgCls(s1Avg)}">${fmtAvg(s1Avg)}</span></span>
+      <span class="cg-sem-badge">S2 : <span class="${avgCls(s2Avg)}">${fmtAvg(s2Avg)}</span></span>
+      <span class="subject-badge ${annCls}">${annTxt}</span>
+      <button class="btn-edit" onclick="event.stopPropagation();startEditCGSubject(${s.id})" title="Renommer">✎</button>
+      <button class="btn-del-sub" onclick="event.stopPropagation();deleteCGSubject(${s.id})" title="Supprimer">🗑</button>
+      <span class="chevron ${isOpen ? 'open' : ''}">▼</span>
+    </div>
+    <div class="subject-progress"><div class="subject-progress-fill" style="width:${barPct}%;background:${barColor};box-shadow:0 0 6px ${barColor}40"></div></div>
+    <div class="subject-body ${isOpen ? 'open' : ''}">${body}</div>
+  </div>`;
+}
+
+function renderCGSubjectBody(s) {
+  return `<div class="sub-sections">${renderCGSemCol(s,1)}${renderCGSemCol(s,2)}</div>`;
+}
+
+function renderCGSemCol(s, sem) {
+  const pt          = s.petits_tests || [];
+  const tests       = s.tests.filter(t => +t.semester === sem);
+  const petits      = pt.filter(t => +t.semester === sem);
+  const futures     = s.futures.filter(f => +f.semester === sem);
+  const otherTests  = s.tests.filter(t => +t.semester === (sem === 1 ? 2 : 1));
+  const otherPetits = pt.filter(t => +t.semester === (sem === 1 ? 2 : 1));
+
+  const semTarget = sem === 1 ? (s.target_s1 || 4.0) : (s.target_s2 || 4.0);
+  const { semAvg, minGrade, petitsAvg } = calcCGSem(tests, petits, futures, semTarget);
+  const { semAvg: otherAvg }            = calcCGSem(otherTests, otherPetits, []);
+  const minGradeYear = otherAvg !== null && futures.length
+    ? calcCGSem(tests, petits, futures, 8.0 - otherAvg).minGrade : null;
+
+  const fmtAvg = v => v !== null ? v.toFixed(2) : '—';
+  const avgCls = v => v === null ? '' : v >= 4 ? 'green' : v >= 3.5 ? 'orange' : 'red';
+
+  const testRows = tests.map(t => {
+    const g = cgGrade(t); const gc = g >= 4 ? 'green' : g >= 3.5 ? 'orange' : 'red';
+    const cmt = t.comment || '';
+    const cmtHtml = `<span id="cgcmt-${s.id}-${t.id}" data-comment="${esc(cmt)}"
+      class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+      onclick="editCommentInline('cgcmt-${s.id}-${t.id}','cgtest',${t.id},${s.id})"
+      >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+    return `<div class="cg-test-item" id="cgitem-${s.id}-${t.id}">
+      <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(t.name)}${cmtHtml}</span>
+      <span class="cg-pts">${t.points_obtained}/${t.points_total}pts</span>
+      <span class="cg-grade ${gc}">${g.toFixed(2)}</span>
+      <button class="btn-edit" onclick="startEditCGTest(${s.id},${t.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGTest(${s.id},${t.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun test</div>';
+
+  const petitsRows = petits.map(t => {
+    const g = cgGrade(t); const gc = g >= 4 ? 'green' : g >= 3.5 ? 'orange' : 'red';
+    const cmt = t.comment || '';
+    const cmtHtml = `<span id="cgsmcmt-${s.id}-${t.id}" data-comment="${esc(cmt)}"
+      class="grade-comment${cmt ? '' : ' grade-comment-empty'}"
+      onclick="editCommentInline('cgsmcmt-${s.id}-${t.id}','cgsmall',${t.id},${s.id})"
+      >${cmt ? esc(cmt) : '+ commentaire'}</span>`;
+    return `<div class="cg-small-item" id="cgsmitem-${s.id}-${t.id}">
+      <span class="mi-name" style="flex-direction:column;align-items:flex-start">${esc(t.name)}${cmtHtml}</span>
+      <span class="cg-pts">${t.points_obtained}/${t.points_total}pts</span>
+      <span class="cg-grade ${gc}">${g.toFixed(2)}</span>
+      <button class="btn-edit" onclick="startEditCGSmall(${s.id},${t.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGSmallTest(${s.id},${t.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun petit test</div>';
+
+  const petitsAvgBox = petitsAvg !== null ? `
+    <div class="cg-small-avg">
+      <span class="cg-small-avg-label">Moy. petits tests <span class="cg-small-avg-hint">(= 1 test dans la moyenne)</span></span>
+      <span class="${avgCls(petitsAvg)}" style="font-weight:700">${petitsAvg.toFixed(2)}</span>
+    </div>` : '';
+
+  const futureRows = futures.map(f => {
+    const mS = fmtMinGrade(minGrade);
+    const mY = fmtMinGrade(minGradeYear);
+    const showYear = mY && minGradeYear !== null && minGrade !== null && Math.abs(minGradeYear - minGrade) > 0.05;
+    return `<div class="cg-min-box" id="cgfitem-${s.id}-${f.id}">
+      <span class="mi-name">${esc(f.name)}${f.is_petit_test ? ' <span class="badge-pt">petit test</span>' : ''}</span>
+      <div style="text-align:right">
+        ${mS ? `<span class="cg-min-pts ${mS.cls}">${mS.label}</span>` : ''}
+        ${showYear ? `<span class="cg-min-sub">Année : <span class="${mY.cls}">${mY.label}</span></span>` : ''}
+      </div>
+      <button class="btn-edit" onclick="startEditCGFuture(${s.id},${f.id})" title="Modifier">✎</button>
+      <button class="btn-x" onclick="deleteCGFuture(${s.id},${f.id})">✕</button>
+    </div>`;
+  }).join('') || '<div class="empty-mini">Aucun test à venir</div>';
+
+  const cgPct    = semAvg !== null ? Math.min(semAvg / semTarget * 100, 100) : 0;
+  const cgBarCls = semAvg === null ? 'bar-r' : semAvg >= semTarget ? 'bar-g' : semAvg >= semTarget - 0.5 ? 'bar-o' : 'bar-r';
+
+  return `<div>
+    <div class="sub-sec-title" style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span>Semestre ${sem}</span><span class="${avgCls(semAvg)}">${fmtAvg(semAvg)}</span>
+    </div>
+    <div class="obj-row" style="margin-bottom:10px">
+      <span class="obj-label">Objectif</span>
+      <input type="number" class="obj-inp" value="${semTarget}" min="1" max="6" step="0.5"
+        onchange="setCGTarget(${s.id},${sem},+this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()" />
+      <div class="obj-bar-wrap"><div class="obj-bar-fill ${cgBarCls}" style="width:${cgPct.toFixed(1)}%"></div></div>
+      <span class="obj-info">${semAvg !== null ? semAvg.toFixed(2) : '—'} / <strong>${semTarget}</strong></span>
+    </div>
+    <div class="sub-sec-title">Tests</div>
+    ${testRows}
+    <div class="sub-sec-title">Petits Tests</div>
+    ${petitsRows}
+    ${petitsAvgBox}
+    <div class="sub-sec-title">Tests à venir</div>
+    ${futureRows}
+    <div class="mini-add">
+      <button class="btn-mini" onclick="openAddCGModal(${s.id},${sem})">Ajouter<div class="icon"><svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"></path><path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" fill="currentColor"></path></svg></div></button>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// Culture Générale — actions
+// ════════════════════════════════════════════════════════════
+function toggleAddCGSubject() {
+  const row = document.getElementById('add-cg-subject-row');
+  row.style.display = row.style.display === 'none' ? '' : 'none';
+  if (row.style.display !== 'none') document.getElementById('inp-cg-subj-name').focus();
+}
+
+async function addCGSubject() {
+  const name = document.getElementById('inp-cg-subj-name').value.trim();
+  if (!name) return showToast('Entrez un nom de matière', 'error');
+  try {
+    const s = await POST('/api/cg/subjects', { name, year: S.year });
+    S.cg.push(s);
+    document.getElementById('inp-cg-subj-name').value = '';
+    document.getElementById('add-cg-subject-row').style.display = 'none';
+    renderCG();
+    showToast(`Matière CG "${name}" ajoutée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteCGSubject(id) {
+  if (!confirm('Supprimer cette matière CG et tous ses tests ?')) return;
+  try {
+    const name = S.cg.find(s => s.id === id)?.name;
+    await DELETE(`/api/cg/subjects/${id}`);
+    S.cg = S.cg.filter(s => s.id !== id);
+    if (S.cgExpanded === id) S.cgExpanded = null;
+    renderCG();
+    showToast(`Matière "${name}" supprimée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function toggleCGSubject(id) {
+  S.cgExpanded = S.cgExpanded === id ? null : id;
+  renderCG();
+}
+
+let _cgModal = { sid: null, sem: null, type: null };
+
+let _cgKind = 'test';
+function setCGKind(kind) {
+  _cgKind = kind;
+  document.querySelectorAll('.cg-kind-btn').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+  const isFuture = kind === 'future';
+  document.getElementById('cg-modal-pts-row').style.display     = isFuture ? 'none' : 'grid';
+  document.getElementById('cg-modal-comment-row').style.display = isFuture ? 'none' : '';
+}
+function openAddCGModal(sid, sem) {
+  _cgModal = { sid, sem, type: null };
+  const subjectName = S.cg.find(s => s.id === sid)?.name || '';
+  document.getElementById('modal-add-cg-title').textContent =
+    subjectName ? `Ajouter — ${subjectName} S${sem}` : 'Ajouter';
+
+  setCGKind('test');
+  document.getElementById('cg-modal-name').value    = '';
+  document.getElementById('cg-modal-obt').value     = '';
+  document.getElementById('cg-modal-tot').value     = '';
+  document.getElementById('cg-modal-comment').value = '';
+  document.getElementById('cg-modal-err').style.display = 'none';
+
+  document.getElementById('modal-add-cg').classList.add('open');
+  setTimeout(() => document.getElementById('cg-modal-name').focus(), 50);
+}
+
+function closeAddCGModal() {
+  document.getElementById('modal-add-cg').classList.remove('open');
+  _cgModal = { sid: null, sem: null, type: null };
+}
+
+async function confirmAddCG() {
+  const { sid, sem } = _cgModal;
+  const type = _cgKind;
+  const name    = document.getElementById('cg-modal-name').value.trim();
+  const errEl   = document.getElementById('cg-modal-err');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = 'Entrez un nom'; errEl.style.display = 'block'; return; }
+
+  try {
+    const s = S.cg.find(s => s.id === sid);
+    if (type === 'future') {
+      const is_petit_test = +document.getElementById('cg-modal-type').value;
+      const f = await POST(`/api/cg/subjects/${sid}/futures`, { semester: sem, name, is_petit_test });
+      if (s) { s.futures.push(f); renderCG(); }
+      showToast(`${is_petit_test ? 'Petit test' : 'Test'} à venir "${name}" ajouté`);
+    } else {
+      const obt     = parseFloat(document.getElementById('cg-modal-obt').value);
+      const tot     = parseFloat(document.getElementById('cg-modal-tot').value);
+      const comment = document.getElementById('cg-modal-comment').value.trim();
+      if (isNaN(obt)||obt<0)  { errEl.textContent = 'Points obtenus invalides'; errEl.style.display='block'; return; }
+      if (isNaN(tot)||tot<=0) { errEl.textContent = 'Points totaux invalides';  errEl.style.display='block'; return; }
+      if (obt > tot)          { errEl.textContent = 'Points obtenus > points totaux'; errEl.style.display='block'; return; }
+      if (type === 'test') {
+        const t = await POST(`/api/cg/subjects/${sid}/tests`, { semester: sem, name, points_obtained: obt, points_total: tot, comment });
+        if (s) { s.tests.push(t); renderCG(); }
+        showToast(`Test "${name}" ajouté (${obt}/${tot} pts)`);
+      } else {
+        const t = await POST(`/api/cg/subjects/${sid}/small-tests`, { semester: sem, name, points_obtained: obt, points_total: tot, comment });
+        if (s) { s.petits_tests.push(t); renderCG(); }
+        showToast(`Petit test "${name}" ajouté (${obt}/${tot} pts)`);
+      }
+    }
+    closeAddCGModal();
+  } catch(e) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+}
+
+async function deleteCGTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.tests.find(t => t.id === tid)?.name;
+  if (!confirm(`Supprimer le test "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/tests/${tid}`);
+    if (s) { s.tests = s.tests.filter(t => t.id !== tid); renderCG(); }
+    showToast(`Test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+
+async function deleteCGSmallTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.petits_tests.find(t => t.id === tid)?.name;
+  if (!confirm(`Supprimer le petit test "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/small-tests/${tid}`);
+    if (s) { s.petits_tests = s.petits_tests.filter(t => t.id !== tid); renderCG(); }
+    showToast(`Petit test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+
+async function deleteCGFuture(sid, fid) {
+  const s = S.cg.find(s => s.id === sid);
+  const name = s?.futures.find(f => f.id === fid)?.name;
+  if (!confirm(`Supprimer le test à venir "${name}" ?`)) return;
+  try {
+    await DELETE(`/api/cg/futures/${fid}`);
+    if (s) { s.futures = s.futures.filter(f => f.id !== fid); renderCG(); }
+    showToast(`Test "${name}" supprimé`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Objectif actions
+// ════════════════════════════════════════════════════════════
+async function setSubjectTarget(sid, target) {
+  target = parseFloat(target);
+  if (isNaN(target) || target < 1 || target > 6) return showToast('Objectif invalide (1–6)', 'error');
+  try {
+    await PATCH(`/api/subjects/${sid}`, { target });
+    const s = S.subjects.find(s => s.id === sid);
+    if (s) s.target = target;
+    renderSubjectInPlace(sid);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function setCGTarget(sid, sem, target) {
+  target = parseFloat(target);
+  if (isNaN(target) || target < 1 || target > 6) return showToast('Objectif invalide (1–6)', 'error');
+  const key = sem === 1 ? 'target_s1' : 'target_s2';
+  try {
+    await PATCH(`/api/cg/subjects/${sid}`, { [key]: target });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) s[key] = target;
+    renderCG();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — subjects
+// ════════════════════════════════════════════════════════════
+function startEditSubject(sid) {
+  const s = S.subjects.find(s => s.id === sid);
+  if (!s) return;
+  const el = document.getElementById(`sname-${sid}`);
+  if (!el) return;
+  el.outerHTML = `<span id="sname-${sid}" style="flex:1;display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+    <input id="se-n-${sid}" value="${esc(s.name)}" style="background:rgba(255,255,255,0.06);border:1px solid var(--acc);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:.9rem;font-weight:600;font-family:'Syne',sans-serif;outline:none;flex:1;min-width:80px"
+      onkeydown="if(event.key==='Enter')saveEditSubject(${sid});if(event.key==='Escape')renderSubjectInPlace(${sid})" />
+    <button class="btn-save" style="padding:3px 8px;font-size:.75rem" onclick="saveEditSubject(${sid})">✓</button>
+    <button class="btn-cancel" style="padding:3px 8px;font-size:.75rem" onclick="renderSubjectInPlace(${sid})">✕</button>
+  </span>`;
+  document.getElementById(`se-n-${sid}`)?.focus();
+}
+
+async function saveEditSubject(sid) {
+  const name = document.getElementById(`se-n-${sid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/subjects/${sid}`, { name });
+    const s = S.subjects.find(s => s.id === sid);
+    if (s) s.name = name;
+    renderSubjectInPlace(sid);
+    showToast(`Matière renommée en "${name}"`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGSubject(sid) {
+  const s = S.cg.find(s => s.id === sid);
+  if (!s) return;
+  const el = document.getElementById(`cgname-${sid}`);
+  if (!el) return;
+  el.outerHTML = `<span id="cgname-${sid}" style="flex:1;display:flex;gap:6px;align-items:center" onclick="event.stopPropagation()">
+    <input id="cse-n-${sid}" value="${esc(s.name)}" style="background:rgba(255,255,255,0.06);border:1px solid var(--acc);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:.9rem;font-weight:600;font-family:'Syne',sans-serif;outline:none;flex:1;min-width:80px"
+      onkeydown="if(event.key==='Enter')saveEditCGSubject(${sid});if(event.key==='Escape')renderCG()" />
+    <button class="btn-save" style="padding:3px 8px;font-size:.75rem" onclick="saveEditCGSubject(${sid})">✓</button>
+    <button class="btn-cancel" style="padding:3px 8px;font-size:.75rem" onclick="renderCG()">✕</button>
+  </span>`;
+  document.getElementById(`cse-n-${sid}`)?.focus();
+}
+
+async function saveEditCGSubject(sid) {
+  const name = document.getElementById(`cse-n-${sid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/cg/subjects/${sid}`, { name });
+    const s = S.cg.find(s => s.id === sid);
+    if (s) s.name = name;
+    renderCG();
+    showToast(`Matière CG renommée en "${name}"`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — grades & futures
+// ════════════════════════════════════════════════════════════
+function editCommentInline(spanId, type, id1, id2) {
+  const span = document.getElementById(spanId);
+  if (!span) return;
+  const current = span.dataset.comment || '';
+  span.outerHTML = `<input id="${spanId}-inp" class="comment-inp" value="${esc(current)}" placeholder="Ajouter un commentaire..."
+    onkeydown="if(event.key==='Enter'){this.dataset.ok='1';this.blur()}if(event.key==='Escape')this.blur()"
+    onblur="saveCommentInline('${spanId}','${type}',${id1},${id2},this)" />`;
+  document.getElementById(`${spanId}-inp`)?.select();
+}
+
+async function saveCommentInline(spanId, type, id1, id2, inp) {
+  if (inp.dataset.ok !== '1' && document.activeElement === inp) return;
+  const val = inp.value.trim();
+  const routes = { grade: `/api/grades/${id1}`, cgtest: `/api/cg/tests/${id1}`, cgsmall: `/api/cg/small-tests/${id1}` };
+  try {
+    await PATCH(routes[type], { comment: val });
+    if (type === 'grade') {
+      const g = S.details[id2]?.grades.find(g => g.id === id1);
+      if (g) g.comment = val;
+      renderSubjectInPlace(id2);
+    } else {
+      const s = S.cg.find(s => s.id === id2);
+      if (s) {
+        const arr = type === 'cgtest' ? s.tests : s.petits_tests;
+        const t = arr?.find(t => t.id === id1);
+        if (t) t.comment = val;
+      }
+      renderCG();
+    }
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditGrade(sid, gid) {
+  const g = S.details[sid]?.grades.find(g => g.id === gid);
+  if (!g) return;
+  const el = document.getElementById(`gitem-${sid}-${gid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="gitem-${sid}-${gid}">
+    <input id="ge-n-${gid}" value="${esc(g.name)}" placeholder="Nom" />
+    <input id="ge-v-${gid}" type="number" value="${g.value}" min="1" max="6" step="0.5" style="max-width:70px" placeholder="Note" />
+    <input id="ge-w-${gid}" type="number" value="${g.weight}" min="1" max="100" style="max-width:65px" placeholder="Poids%" />
+    <input id="ge-c-${gid}" value="${esc(g.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditGrade(${sid},${gid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderSubjectInPlace(${sid})">Annuler</button>
+  </div>`;
+  document.getElementById(`ge-n-${gid}`)?.focus();
+}
+
+async function saveEditGrade(sid, gid) {
+  const name    = document.getElementById(`ge-n-${gid}`)?.value.trim();
+  const value   = parseFloat(document.getElementById(`ge-v-${gid}`)?.value);
+  const weight  = parseFloat(document.getElementById(`ge-w-${gid}`)?.value);
+  const comment = document.getElementById(`ge-c-${gid}`)?.value.trim() ?? '';
+  if (!name)                          return showToast('Entrez un nom', 'error');
+  if (isNaN(value)||value<1||value>6) return showToast('Note invalide (1–6)', 'error');
+  if (isNaN(weight)||weight<=0)       return showToast('Poids % invalide', 'error');
+  try {
+    await PATCH(`/api/grades/${gid}`, { name, value, weight, comment });
+    const g = S.details[sid]?.grades.find(g => g.id === gid);
+    if (g) { g.name = name; g.value = value; g.weight = weight; g.comment = comment; }
+    renderSubjectInPlace(sid);
+    showToast(`Note "${name}" modifiée`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditFuture(sid, fid) {
+  const f = S.details[sid]?.futures.find(f => f.id === fid);
+  if (!f) return;
+  const el = document.getElementById(`fitem-${sid}-${fid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="fitem-${sid}-${fid}">
+    <input id="fe-n-${fid}" value="${esc(f.name)}" placeholder="Nom" />
+    <input id="fe-w-${fid}" type="number" value="${f.weight}" min="1" max="100" style="max-width:65px" placeholder="Poids%" />
+    <input id="fe-note-${fid}" type="number" value="${f.note != null ? f.note : ''}" min="1" max="6" step="0.5" style="max-width:70px" placeholder="Note (1-6)" />
+    <button class="btn-save" onclick="saveEditFuture(${sid},${fid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderSubjectInPlace(${sid})">Annuler</button>
+  </div>`;
+  document.getElementById(`fe-n-${fid}`)?.focus();
+}
+
+async function saveEditFuture(sid, fid) {
+  const name    = document.getElementById(`fe-n-${fid}`)?.value.trim();
+  const weight  = parseFloat(document.getElementById(`fe-w-${fid}`)?.value);
+  const noteRaw = document.getElementById(`fe-note-${fid}`)?.value;
+  const note    = noteRaw !== '' ? parseFloat(noteRaw) : null;
+  if (!name)                     return showToast('Entrez un nom', 'error');
+  if (isNaN(weight)||weight<=0)  return showToast('Poids % invalide', 'error');
+  if (note !== null && (isNaN(note)||note<1||note>6)) return showToast('Note invalide (1–6)', 'error');
+  try {
+    await PATCH(`/api/future/${fid}`, { name, weight, note });
+    const f = S.details[sid]?.futures.find(f => f.id === fid);
+    if (f) { f.name = name; f.weight = weight; f.note = note; }
+    renderSubjectInPlace(sid);
+    showToast(`Test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — projects
+// ════════════════════════════════════════════════════════════
+function startEditProject(pid) {
+  const p = S.projects.find(p => p.id === pid);
+  if (!p) return;
+  const el = document.getElementById(`pitem-${pid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="pitem-${pid}">
+    <input id="pe-n-${pid}" value="${esc(p.name)}" placeholder="Nom du projet" />
+    <input id="pe-p-${pid}" type="number" value="${p.periods}" min="1" style="max-width:80px" placeholder="Périodes" />
+    <button class="btn-save" onclick="saveEditProject(${pid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderProjects()">Annuler</button>
+  </div>`;
+  document.getElementById(`pe-n-${pid}`)?.focus();
+}
+
+async function saveEditProject(pid) {
+  const name    = document.getElementById(`pe-n-${pid}`)?.value.trim();
+  const periods = parseInt(document.getElementById(`pe-p-${pid}`)?.value, 10);
+  if (!name)                     return showToast('Entrez un nom', 'error');
+  if (isNaN(periods)||periods<1) return showToast('Périodes invalides', 'error');
+  try {
+    await PATCH(`/api/projects/${pid}`, { name, periods });
+    const p = S.projects.find(p => p.id === pid);
+    if (p) { p.name = name; p.periods = periods; }
+    renderProjects();
+    showToast(`Projet "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Edit actions — CG tests, petits tests, futures
+// ════════════════════════════════════════════════════════════
+function startEditCGTest(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const t = s?.tests.find(t => t.id === tid);
+  if (!t) return;
+  const el = document.getElementById(`cgitem-${sid}-${tid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgitem-${sid}-${tid}">
+    <input id="cgte-n-${tid}" value="${esc(t.name)}" placeholder="Nom" />
+    <input id="cgte-o-${tid}" type="number" value="${t.points_obtained}" min="0" style="max-width:70px" placeholder="Pts obtenus" />
+    <input id="cgte-t-${tid}" type="number" value="${t.points_total}" min="1" style="max-width:70px" placeholder="Pts totaux" />
+    <input id="cgte-c-${tid}" value="${esc(t.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditCGTest(${sid},${tid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgte-n-${tid}`)?.focus();
+}
+
+async function saveEditCGTest(sid, tid) {
+  const name    = document.getElementById(`cgte-n-${tid}`)?.value.trim();
+  const obt     = parseFloat(document.getElementById(`cgte-o-${tid}`)?.value);
+  const tot     = parseFloat(document.getElementById(`cgte-t-${tid}`)?.value);
+  const comment = document.getElementById(`cgte-c-${tid}`)?.value.trim() ?? '';
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > totaux', 'error');
+  try {
+    await PATCH(`/api/cg/tests/${tid}`, { name, points_obtained: obt, points_total: tot, comment });
+    const s = S.cg.find(s => s.id === sid);
+    const t = s?.tests.find(t => t.id === tid);
+    if (t) { t.name = name; t.points_obtained = obt; t.points_total = tot; t.comment = comment; }
+    renderCG();
+    showToast(`Test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGSmall(sid, tid) {
+  const s = S.cg.find(s => s.id === sid);
+  const t = s?.petits_tests.find(t => t.id === tid);
+  if (!t) return;
+  const el = document.getElementById(`cgsmitem-${sid}-${tid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgsmitem-${sid}-${tid}">
+    <input id="cgsme-n-${tid}" value="${esc(t.name)}" placeholder="Nom" />
+    <input id="cgsme-o-${tid}" type="number" value="${t.points_obtained}" min="0" style="max-width:70px" placeholder="Pts obtenus" />
+    <input id="cgsme-t-${tid}" type="number" value="${t.points_total}" min="1" style="max-width:70px" placeholder="Pts totaux" />
+    <input id="cgsme-c-${tid}" value="${esc(t.comment||'')}" placeholder="Commentaire (optionnel)" style="flex:1" />
+    <button class="btn-save" onclick="saveEditCGSmall(${sid},${tid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgsme-n-${tid}`)?.focus();
+}
+
+async function saveEditCGSmall(sid, tid) {
+  const name    = document.getElementById(`cgsme-n-${tid}`)?.value.trim();
+  const obt     = parseFloat(document.getElementById(`cgsme-o-${tid}`)?.value);
+  const tot     = parseFloat(document.getElementById(`cgsme-t-${tid}`)?.value);
+  const comment = document.getElementById(`cgsme-c-${tid}`)?.value.trim() ?? '';
+  if (!name)              return showToast('Entrez un nom', 'error');
+  if (isNaN(obt)||obt<0)  return showToast('Points obtenus invalides', 'error');
+  if (isNaN(tot)||tot<=0) return showToast('Points totaux invalides', 'error');
+  if (obt > tot)          return showToast('Points obtenus > totaux', 'error');
+  try {
+    await PATCH(`/api/cg/small-tests/${tid}`, { name, points_obtained: obt, points_total: tot, comment });
+    const s = S.cg.find(s => s.id === sid);
+    const t = s?.petits_tests.find(t => t.id === tid);
+    if (t) { t.name = name; t.points_obtained = obt; t.points_total = tot; t.comment = comment; }
+    renderCG();
+    showToast(`Petit test "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function startEditCGFuture(sid, fid) {
+  const s = S.cg.find(s => s.id === sid);
+  const f = s?.futures.find(f => f.id === fid);
+  if (!f) return;
+  const el = document.getElementById(`cgfitem-${sid}-${fid}`);
+  if (!el) return;
+  el.outerHTML = `<div class="edit-form" id="cgfitem-${sid}-${fid}">
+    <input id="cgfe-n-${fid}" value="${esc(f.name)}" placeholder="Nom" />
+    <button class="btn-save" onclick="saveEditCGFuture(${sid},${fid})">✓ Sauver</button>
+    <button class="btn-cancel" onclick="renderCG()">Annuler</button>
+  </div>`;
+  document.getElementById(`cgfe-n-${fid}`)?.focus();
+}
+
+async function saveEditCGFuture(sid, fid) {
+  const name = document.getElementById(`cgfe-n-${fid}`)?.value.trim();
+  if (!name) return showToast('Entrez un nom', 'error');
+  try {
+    await PATCH(`/api/cg/futures/${fid}`, { name });
+    const s = S.cg.find(s => s.id === sid);
+    const f = s?.futures.find(f => f.id === fid);
+    if (f) f.name = name;
+    renderCG();
+    showToast(`Test à venir "${name}" modifié`);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// Enter key support
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const id = e.target.id;
+  if (id === 'inp-subj-name')  addSubject();
+  if (id === 'inp-proj-name' || id === 'inp-proj-periods') addProject();
+  if (id === 'inp-username' || id === 'inp-password' || id === 'inp-email') submitAuth();
+});
+
+// ════════════════════════════════════════════════════════════
+// Support modal
+// ════════════════════════════════════════════════════════════
+function openSupportModal() {
+  document.getElementById('support-error').style.display   = 'none';
+  document.getElementById('support-success').style.display = 'none';
+  document.getElementById('support-titre').value           = '';
+  document.getElementById('support-description').value     = '';
+  document.getElementById('support-type-bug').checked      = true;
+  document.getElementById('support-submit-btn').disabled   = false;
+  document.getElementById('support-submit-btn').textContent = 'Envoyer';
+  updateSupportTypeStyle();
+  const ov = document.getElementById('support-overlay');
+  ov.style.opacity = '1'; ov.style.pointerEvents = 'all';
+  document.getElementById('support-box').style.transform = 'translateY(0)';
+  ov.style.alignItems = window.innerWidth >= 520 ? 'center' : 'flex-end';
+  document.getElementById('support-box').style.borderRadius = window.innerWidth >= 520 ? '18px' : '18px 18px 0 0';
+}
+function closeSupportModal() {
+  const ov = document.getElementById('support-overlay');
+  ov.style.opacity = '0'; ov.style.pointerEvents = 'none';
+  document.getElementById('support-box').style.transform = 'translateY(20px)';
+}
+function updateSupportTypeStyle() {
+  const isBug = document.getElementById('support-type-bug').checked;
+  document.getElementById('support-type-bug-label').style.borderColor        = isBug ? '#fb7185' : 'rgba(255,255,255,0.1)';
+  document.getElementById('support-type-suggestion-label').style.borderColor = !isBug ? '#60a5fa' : 'rgba(255,255,255,0.1)';
+}
+async function submitSupport() {
+  const type        = document.getElementById('support-type-bug').checked ? 'bug' : 'suggestion';
+  const titre       = document.getElementById('support-titre').value.trim();
+  const description = document.getElementById('support-description').value.trim();
+  const errEl       = document.getElementById('support-error');
+  const btn         = document.getElementById('support-submit-btn');
+  errEl.style.display = 'none';
+  if (!titre)       { errEl.textContent = 'Le titre est requis.';       errEl.style.display = 'block'; return; }
+  if (!description) { errEl.textContent = 'La description est requise.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  try {
+    await POST('/api/support', { type, titre, description });
+    const suc = document.getElementById('support-success');
+    suc.textContent = 'Ticket envoyé ! Merci pour ton retour.';
+    suc.style.display = 'block';
+    btn.textContent = 'Envoyé ✓';
+    setTimeout(closeSupportModal, 2000);
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Envoyer';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════════════════════
+applyTheme(localStorage.getItem('theme') || 'dark');
+if (S.token) {
+  showApp();
+} else {
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+</script>
+<!-- Support modal -->
+<div id="support-overlay" style="
+  position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s
+" onclick="if(event.target===this)closeSupportModal()">
+  <div id="support-box" style="
+    background:#13132e;border:1px solid rgba(255,255,255,0.12);
+    border-radius:18px 18px 0 0;width:100%;max-width:480px;
+    max-height:88vh;overflow-y:auto;padding:24px 22px;
+    transform:translateY(20px);transition:transform .2s;
+    box-shadow:0 -4px 40px rgba(0,0,0,0.5)
+  ">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;
+        background:linear-gradient(135deg,#fff 0%,var(--acc) 100%);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        Contacter le support
+      </h3>
+      <button onclick="closeSupportModal()" style="
+        background:rgba(255,255,255,0.08);border:none;color:var(--tx2);
+        width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.95rem;
+        display:flex;align-items:center;justify-content:center
+      ">✕</button>
+    </div>
+    <div id="support-error" style="display:none;color:#fb7185;font-size:.82rem;
+      background:rgba(251,113,133,0.1);border-radius:8px;padding:8px 12px;margin-bottom:12px"></div>
+    <div id="support-success" style="display:none;color:#34d399;font-size:.88rem;
+      background:rgba(52,211,153,0.1);border-radius:8px;padding:12px;margin-bottom:12px;text-align:center"></div>
+    <div class="field">
+      <label>Type</label>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;
+          background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+          border-radius:10px;padding:10px 14px;transition:border-color .2s" id="support-type-bug-label">
+          <input type="radio" name="support-type" id="support-type-bug" value="bug" checked
+            style="accent-color:var(--red)" onchange="updateSupportTypeStyle()">
+          <span>Bug</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;
+          background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+          border-radius:10px;padding:10px 14px;transition:border-color .2s" id="support-type-suggestion-label">
+          <input type="radio" name="support-type" id="support-type-suggestion" value="suggestion"
+            style="accent-color:#60a5fa" onchange="updateSupportTypeStyle()">
+          <span>Suggestion</span>
+        </label>
+      </div>
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Titre</label>
+      <input type="text" id="support-titre" maxlength="150" placeholder="Résumé en une ligne…" style="
+        background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+        color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+        outline:none;width:100%;font-family:inherit;transition:border-color .2s
+      ">
+    </div>
+    <div class="field" style="margin-top:14px">
+      <label>Description</label>
+      <textarea id="support-description" maxlength="2000" rows="5" placeholder="Décris le problème ou la suggestion en détail…" style="
+        background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+        color:var(--tx);padding:10px 13px;border-radius:var(--rs);font-size:.9rem;
+        outline:none;width:100%;font-family:inherit;resize:vertical;transition:border-color .2s
+      "></textarea>
+    </div>
+    <button onclick="submitSupport()" id="support-submit-btn" style="
+      margin-top:18px;width:100%;padding:12px;border:none;border-radius:10px;
+      background:var(--acc2);color:#fff;font-family:'Syne',sans-serif;font-weight:700;
+      font-size:.95rem;cursor:pointer;transition:opacity .2s
+    ">Envoyer</button>
+  </div>
+</div>
+
+<!-- Mes tickets modal -->
+<div id="tickets-overlay" onclick="if(event.target===this)closeTicketsModal()" style="
+  position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:500;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s
+">
+  <div style="
+    background:#13132e;border:1px solid rgba(255,255,255,0.12);
+    border-radius:18px 18px 0 0;width:100%;max-width:520px;
+    max-height:88vh;overflow-y:auto;padding:24px 22px;
+    transform:translateY(20px);transition:transform .2s;
+    box-shadow:0 -4px 40px rgba(0,0,0,0.5)
+  " id="tickets-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;
+        background:linear-gradient(135deg,#fff 0%,var(--acc) 100%);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        Mes tickets
+      </h3>
+      <button onclick="closeTicketsModal()" style="
+        background:rgba(255,255,255,0.08);border:none;color:var(--tx2);
+        width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.95rem;
+        display:flex;align-items:center;justify-content:center
+      ">✕</button>
+    </div>
+    <div id="my-tickets-list" style="display:flex;flex-direction:column;gap:10px">
+      <div style="text-align:center;color:var(--tx2);padding:2rem;font-size:.9rem">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat modal (utilisateur) -->
+<div id="user-chat-overlay" onclick="if(event.target===this)closeUserChat()" style="
+  position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:600;
+  display:none;justify-content:center;
+">
+  <div style="
+    background:#13132e;border:1px solid rgba(255,255,255,0.12);
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 8px 40px rgba(0,0,0,0.6)
+  ">
+    <div style="padding:1.1rem 1.3rem;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem">
+      <div>
+        <div id="user-chat-titre" style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:.2rem"></div>
+        <div id="user-chat-sub" style="color:var(--tx2);font-size:.73rem"></div>
+      </div>
+      <button onclick="closeUserChat()" style="
+        background:rgba(255,255,255,0.08);border:none;color:var(--tx2);
+        width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem;
+        display:flex;align-items:center;justify-content:center;flex-shrink:0
+      ">✕</button>
+    </div>
+    <div id="user-chat-messages" style="flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;min-height:200px;max-height:380px"></div>
+    <div style="padding:.8rem 1rem;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:.6rem">
+      <input id="user-chat-input" type="text" maxlength="2000" placeholder="Envoyer un message…" style="
+        flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+        color:var(--tx);padding:.55rem .9rem;border-radius:8px;font-family:inherit;font-size:.875rem;outline:none
+      ">
+      <button onclick="sendUserMsg()" style="
+        background:transparent;color:var(--tx);border:1px solid var(--tx);padding:.55rem 1.1rem;
+        border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;font-size:.875rem
+      ">Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ── Mes tickets + Chat utilisateur ─────────────────────────────────────────
+let userChatSocket = null;
+let userChatTicketId = null;
+let myTicketsCache = [];
+
+function renderMyTicketsList(listEl) {
+  if (!myTicketsCache.length) {
+    listEl.innerHTML = '<div style="text-align:center;color:var(--tx2);padding:2rem;font-size:.9rem">Aucun ticket pour l\'instant.</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  myTicketsCache.forEach(t => {
+    const typeColor = t.type === 'bug' ? '#fb7185' : t.type === 'reset' ? '#f97316' : '#60a5fa';
+    const typeLabel = t.type === 'bug' ? 'Bug' : t.type === 'reset' ? 'Reset MDP' : 'Suggestion';
+    const statutColor = t.statut === 'ouvert' ? '#f97316' : '#34d399';
+    const card = document.createElement('div');
+    card.dataset.ticketId = t.id;
+    card.style.cssText = 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px';
+    const btn = document.createElement('button');
+    btn.style.cssText = 'background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.25);padding:.3rem .8rem;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit';
+    btn.textContent = 'Chat';
+    btn.onclick = () => openUserChat(t.id);
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+        <span style="font-weight:600;font-size:.9rem">${escHtml(t.titre)}</span>
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <span style="font-size:.7rem;color:${typeColor};background:${typeColor}22;border:1px solid ${typeColor}44;padding:.15rem .5rem;border-radius:99px">${typeLabel}</span>
+          <span style="font-size:.7rem;color:${statutColor};background:${statutColor}22;border:1px solid ${statutColor}44;padding:.15rem .5rem;border-radius:99px">${t.statut}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+        <span style="color:var(--tx2);font-size:.75rem">${new Date(t.created_at + 'Z').toLocaleString('fr-CH', {timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+    `;
+    card.querySelector('div:last-child').appendChild(btn);
+    listEl.appendChild(card);
+  });
+}
+
+async function openTicketsModal() {
+  const ov = document.getElementById('tickets-overlay');
+  const box = document.getElementById('tickets-box');
+  ov.style.opacity = '1'; ov.style.pointerEvents = 'all';
+  box.style.transform = 'translateY(0)';
+  ov.style.alignItems = window.innerWidth >= 520 ? 'center' : 'flex-end';
+  box.style.borderRadius = window.innerWidth >= 520 ? '18px' : '18px 18px 0 0';
+  const listEl = document.getElementById('my-tickets-list');
+  listEl.innerHTML = '<div style="text-align:center;color:var(--tx2);padding:2rem;font-size:.9rem">Chargement…</div>';
+  try {
+    myTicketsCache = await GET('/api/tickets/my');
+    renderMyTicketsList(listEl);
+  } catch(e) {
+    listEl.innerHTML = `<div style="color:#fb7185;padding:1rem;font-size:.85rem">${escHtml(e.message)}</div>`;
+  }
+}
+
+function closeTicketsModal() {
+  const ov = document.getElementById('tickets-overlay');
+  const box = document.getElementById('tickets-box');
+  ov.style.opacity = '0'; ov.style.pointerEvents = 'none';
+  box.style.transform = 'translateY(20px)';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function openUserChat(ticketId) {
+  userChatTicketId = ticketId;
+  const t = myTicketsCache.find(x => x.id === ticketId);
+  document.getElementById('user-chat-titre').textContent = t ? t.titre : 'Ticket #' + ticketId;
+  document.getElementById('user-chat-sub').textContent = 'Ticket #' + ticketId;
+  document.getElementById('user-chat-input').value = '';
+  const msgs = document.getElementById('user-chat-messages');
+  msgs.innerHTML = '<div style="color:var(--tx2);text-align:center;padding:2rem;font-size:.85rem">Chargement…</div>';
+  document.getElementById('user-chat-overlay').style.display = 'flex';
+  try {
+    const history = await GET(`/api/tickets/${ticketId}/messages`);
+    renderUserMsgs(msgs, history);
+  } catch(e) {
+    msgs.innerHTML = `<div style="color:#fb7185;padding:1rem">${escHtml(e.message)}</div>`;
+  }
+  if (userChatSocket) userChatSocket.disconnect();
+  userChatSocket = io({ auth: { token: S.token } });
+  userChatSocket.emit('join-ticket', ticketId);
+  userChatSocket.on('message', msg => {
+    if (msg.ticket_id === userChatTicketId) appendUserMsg(document.getElementById('user-chat-messages'), msg);
+  });
+}
+
+function closeUserChat() {
+  document.getElementById('user-chat-overlay').style.display = 'none';
+  if (userChatSocket) { userChatSocket.disconnect(); userChatSocket = null; }
+  userChatTicketId = null;
+}
+
+function renderUserMsgs(el, msgs) {
+  if (!msgs.length) { el.innerHTML = '<div style="color:var(--tx2);text-align:center;padding:2rem;font-size:.85rem">Aucun message pour l\'instant.</div>'; return; }
+  el.innerHTML = '';
+  msgs.forEach(m => appendUserMsg(el, m, false));
+  el.scrollTop = el.scrollHeight;
+}
+
+function appendUserMsg(el, m, scroll) {
+  if (scroll === undefined) scroll = true;
+  const isAdmin = m.is_admin;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;flex-direction:column;align-items:' + (isAdmin ? 'flex-start' : 'flex-end') + ';margin-bottom:.4rem';
+  const label = isAdmin ? '🛡 Support' : 'Moi';
+  const bg = isAdmin ? 'rgba(124,58,237,.2)' : 'rgba(255,255,255,.07)';
+  const border = isAdmin ? 'rgba(124,58,237,.35)' : 'rgba(255,255,255,.1)';
+  div.innerHTML = `<div style="font-size:.7rem;color:var(--tx2);margin-bottom:.2rem">${label}</div><div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:.45rem .85rem;max-width:82%;font-size:.875rem;word-break:break-word;white-space:pre-wrap">${escHtml(m.message)}</div>`;
+  el.appendChild(div);
+  if (scroll) el.scrollTop = el.scrollHeight;
+}
+
+async function sendUserMsg() {
+  if (!userChatTicketId) return;
+  const input = document.getElementById('user-chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  try { await POST(`/api/tickets/${userChatTicketId}/messages`, { message: msg }); }
+  catch(e) { showToast(e.message, 'error'); }
+}
+
+document.getElementById('user-chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMsg(); }
+});
+</script>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+<script>
+  window.addEventListener('scroll', () => {
+    document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+</body>
+</html>

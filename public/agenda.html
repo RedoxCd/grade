@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Scolaire</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/agenda.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>📚 Agenda</h1>
+        <p class="sb-user" id="sidebar-user">—</p>
+        <a href="/" class="sb-back">← Retour aux Notes</a>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item" data-view="schedule" onclick="navigate('schedule')">
+          <span class="icon">📅</span> Emploi du temps
+        </button>
+        <button class="nav-item" data-view="devoirs" onclick="navigate('devoirs')">
+          <span class="icon">📝</span> Devoirs
+        </button>
+        <button class="nav-item" data-view="matieres" onclick="navigate('matieres')">
+          <span class="icon">🎨</span> Matières
+        </button>
+        <button class="nav-item" data-view="stats" onclick="navigate('stats')">
+          <span class="icon">📊</span> Statistiques
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" onclick="logout()" style="width:100%;justify-content:center">
+          Déconnexion
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main" id="main-content"></main>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="bottom-nav">
+      <div class="bottom-nav-inner">
+        <button class="bn-item" data-view="schedule" onclick="navigate('schedule')">
+          <span class="icon">📅</span><span>Emploi</span>
+        </button>
+        <button class="bn-item" data-view="devoirs" onclick="navigate('devoirs')">
+          <span class="icon">📝</span><span>Devoirs</span>
+        </button>
+        <button class="bn-item" data-view="matieres" onclick="navigate('matieres')">
+          <span class="icon">🎨</span><span>Matières</span>
+        </button>
+        <button class="bn-item" data-view="stats" onclick="navigate('stats')">
+          <span class="icon">📊</span><span>Stats</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/agenda-api.js"></script>
+  <script src="/js/agenda-app.js"></script>
+  <script src="/js/agenda-schedule.js"></script>
+  <script src="/js/agenda-devoirs.js"></script>
+  <script src="/js/agenda-matieres.js"></script>
+  <script src="/js/agenda-stats.js"></script>
+</body>
+</html>
